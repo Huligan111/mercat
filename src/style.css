@@ -1,0 +1,70 @@
+/* 
+ * Estilos Personalizados - Complemento a Bootstrap 5 
+ */
+
+/* Ajustes globales del body para que se sienta como una aplicación nativa móvil */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+    /* Previene dobles toques de zoom molesto en móviles */
+    user-select: none;
+    /* Previene la selección de texto no intencionada en componentes UI */
+}
+
+/* Permitir selección de texto en inputs exclusivamente */
+input {
+    user-select: text !important;
+}
+
+/* Personalización del contenedor de Html5QrcodeScanner */
+#reader {
+    border: none !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Sobreescribimos algunos estilos horribles inyectados por defecto por la librería de escáner */
+#reader__dashboard_section_csr button {
+    background-color: var(--bs-primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+#reader__dashboard_section_csr {
+    margin-bottom: 15px;
+}
+
+#reader__dashboard_section_swaplink {
+    display: none !important;
+    /* Oculta el texto "Scan an Image File" */
+}
+
+/* Ocultar el icono "i" de información de la librería */
+#reader img[alt="Info icon"],
+#reader img[title="Info icon"],
+#reader a[title="Info"] {
+    display: none !important;
+}
+
+/* Transiciones hermosas para la tabla (Mejora Premium UX) */
+#cart-items tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+#cart-items tr:active {
+    background-color: #f8f9fa;
+    /* Animación de pulsación táctil */
+}
+
+/* Fix visual para inputs numericos sin flechas arriba y abajo (Spinners) */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
