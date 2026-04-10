@@ -1,0 +1,164 @@
+/**
+ * Módulo de la Interfaz de Usuario (UI) para el Carrito de Compras.
+ * Se encarga de pintar la tabla dinámica con los productos escaneados,
+ * calcular los totales y asignar eventos a los botones (+, -, Borrar).
+ */
+
+import * as db from '../storage.js';
+import Swal from 'sweetalert2';
+
+// Referencias al DOM (Almacenadas a nivel de módulo por rendimiento)
+let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart;
+
+/**
+ * Inicializador principal del UI del Carrito.
+ * Atrapa los elementos del DOM solo una vez cuando la app arranca.
+ */
+export const initCartUI = () => {
+    cartItemsContainer = document.getElementById('cart-items');
+    cartTotalElement = document.getElementById('cart-total');
+    emptyCartMsg = document.getElementById('empty-cart-msg');
+    btnClearCart = document.getElementById('btn-clear-cart');
+
+    // Asignamos el evento al botón general de "Vaciar Carrito"
+    if (btnClearCart) {
+        btnClearCart.addEventListener('click', () => {
+            const cart = db.getCart();
+            // Prevención: Si no hay items, no preguntamos nada para evitar molestos pop-ups innecesarios.
+            if (cart.length === 0) return; 
+            
+            // Lanzamos un modal elegante con efecto visual oscurecido para pedir confirmación
+            Swal.fire({
+              title: '¿Vaciar Lista?',
+              text: "Se eliminarán todos los elementos escaneados de esta compra.",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#dc3545', // Código CSS de nuestro rojo Bootstrap
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: 'Sí, vaciar',
+              cancelButtonText: 'Cancelar',
+              backdrop: `rgba(0,0,0,0.5)`
+            }).then((result) => {
+              if (result.isConfirmed) {
+                  // Si el usuario acepta, llamamos a la capa de datos (storage) y repintamos
+                  db.clearCart();
+                  renderCart();
+                  
+                  // Notificación final rápida
+                  Swal.fire({
+                      title: 'Vaciada',
+                      text: 'Tu cesta está limpia otra vez.',
+                      icon: 'success',
+                      timer: 1500,
+                      showConfirmButton: false
+                  });
+              }
+            });
+        });
+    }
+};
+
+/**
+ * Función vital que renderiza visualmente toda la información de la cesta en la tabla HTML.
+ * Debe ser invocada siempre que el carrito sufra cualquier mutación (añadir, quitar, sumar cantidad).
+ */
+export const renderCart = () => {
+    if (!cartItemsContainer) return; // Seguridad: no hacer nada si el HTML falló
+    
+    const cart = db.getCart();
+    
+    // Limpiamos todo el interior de la tabla antes de reconstruirla (para evitar duplicados)
+    cartItemsContainer.innerHTML = '';
+    
+    let totalAcumulado = 0; // Acumulador matemático global del coste
+
+    // Gestión del Estado Vacío: Ocultamos tabla y mostramos mensaje amigable
+    if (cart.length === 0) {
+        emptyCartMsg.style.display = 'block';
+        cartTotalElement.textContent = '0.00 €';
+        return;
+    } else {
+        emptyCartMsg.style.display = 'none';
+    }
+
+    // Iteramos por la matriz del array guardado en localStorage
+    cart.forEach(item => {
+        // Multiplicamos el coste unitario por la cantidad para el subtotal de fila
+        const itemSubtotal = item.price * item.quantity;
+        totalAcumulado += itemSubtotal;
+        
+        // Creamos dinámicamente un tag HTML <tr> (Fila de tabla)
+        const tr = document.createElement('tr');
+        
+        // Usamos plantillas literales para inyectar variables en el string de HTML
+        tr.innerHTML = `
+            <td class="ps-3 fw-medium align-middle">
+                ${item.name}
+            </td>
+            <td class="text-center align-middle py-3">
+                <!-- Selectores de cantidad con diseño botonera tipo "Controlador" -->
+                <div class="btn-group btn-group-sm mb-2" role="group" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <button type="button" class="btn btn-outline-primary btn-decrease" data-barcode="${item.barcode}">-</button>
+                    <!-- El número intermedio no es clicleable (disabled) solo tiene función visual -->
+                    <button type="button" class="btn btn-outline-primary fw-bold" disabled style="color: black;">${item.quantity}</button>
+                    <button type="button" class="btn btn-outline-primary btn-increase" data-barcode="${item.barcode}">+</button>
+                </div>
+                <!-- Mini etiqueta verde para recordar el precio original de la unidad -->
+                <div class="fw-bold text-success fs-5">
+                    ${item.price.toFixed(2)}€
+                </div>
+            </td>
+            <td class="text-end fw-bold align-middle fs-6">
+                <!-- Muestra del subtotal redondeado a 2 decimales para evitar errores de coma flotante -->
+                ${itemSubtotal.toFixed(2)}€
+            </td>
+            <td class="align-middle">
+                <!-- Botón eliminar sin bordes y color suave para no ensuciar la visual -->
+                <button class="btn btn-sm text-danger btn-delete border-0" data-barcode="${item.barcode}">
+                    <i class="bi bi-trash3 fs-5"></i>
+                </button>
+            </td>
+        `;
+        // Lo anclamos físicamente a nuestro contenedor en el DOM
+        cartItemsContainer.appendChild(tr);
+    });
+
+    // Actualizamos el sumatorio global que irá en la parte inferior adhesiva de la app (footer)
+    cartTotalElement.textContent = `${totalAcumulado.toFixed(2)} €`;
+    
+    // Inyección de escuchas de eventos (Vital ya que los botones son recreados de 0 en el HTML de arriba)
+    attachCartButtonListeners();
+};
+
+/**
+ * Función interna para unir clics de ratón/pantalla a los botones dinámicos.
+ * Al usar '.forEach' nos aseguramos de que TODO icono de 'Restar' actúe sobre SU propio producto 
+ * usando el atributo 'data-barcode'
+ */
+const attachCartButtonListeners = () => {
+    // Escucha para restar cantidad
+    document.querySelectorAll('.btn-decrease').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            db.decreaseQuantity(e.target.dataset.barcode);
+            renderCart(); // Forzamos refresco gráfico tras descontar
+        });
+    });
+
+    // Escucha para sumar cantidad
+    document.querySelectorAll('.btn-increase').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            db.increaseQuantity(e.target.dataset.barcode);
+            renderCart(); // Forzamos refresco gráfico
+        });
+    });
+
+    // Escucha para eliminar la fila entera de un plumazo
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Buscamos el origen del botón más cercano resolviendo el problema de hacer tap en el icono basura
+            const barCode = e.target.closest('button').dataset.barcode;
+            db.removeFromCart(barCode);
+            renderCart(); 
+        });
+    });
+};

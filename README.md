@@ -5,11 +5,12 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 ## ✨ Características Principales
 
 *   **📷 Escáner de Códigos de Barras Intencional**: Lector integrado súper rápido. Pausa automática al detectar productos para que no se vuelva loco leyendo el mismo producto.
-*   **💾 Inventario Local-First**: Todo lo que escaneas se guarda de por vida en la memoria de tu móvil (LocalStorage).
+*   **📲 Instalación Nativa (PWA)**: Descargable e instalable en la pantalla de inicio de dispositivos iOS/Android. Soporte 100% **Offline** (tu catálogo y la cámara seguirán funcionando en modo avión) y sistema *autoUpdate* silencioso.
+*   **💾 Inventario Local-First**: Todo lo que escaneas se guarda de por vida en la memoria de tu móvil (LocalStorage) sin bases de datos ajenas.
 *   **🔎 Búsqueda Instantánea**: Busca milisegundos entre tus productos guardados por código o nombre gracias al buscador dinámico *en vivo*.
-*   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una aplicación descargada típica de la App Store.
-*   **🎨 Alertas Animadas Premium**: Integración de notificaciones sutiles (SweetAlert2) durante el proceso de compra.
-*   **✏️ Gestión CRUD Total**: Edita nombres, modifica precios de tus productos si han subido/bajado o borra elementos viejos del catálogo con un clic.
+*   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una AppStore final.
+*   **🎨 Alertas Animadas Premium**: Integración de notificaciones sutiles con SweetAlert2.
+*   **✏️ Gestión CRUD Total**: Edita nombres, altera precios si han subido/bajado o borra elementos del catálogo con un clic.
 
 ## 🛠 Tecnologías Utilizadas
 
@@ -18,6 +19,7 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 *   **[Bootstrap 5](https://getbootstrap.com/)** - Instalado nativamente e importado vía Node para garantizar rendimiento incluso sin internet. Icons y modales incluidos.
 *   **[html5-qrcode](https://github.com/mebjas/html5-qrcode)** - Librería para el escáner de códigos usando la cámara del dispositivo móvil.
 *   **[SweetAlert2](https://sweetalert2.github.io/)** - Alertas y cuadros de diálogo animados premium.
+*   **vite-plugin-pwa** - Inyección de Service Workers y Manifiestos para habilitar las características nativas y offline.
 
 ## 🚀 Instalación y Despliegue Local
 
@@ -43,7 +45,8 @@ Abrirás desde el móvil algo similar a: `https://192.168.1.XX:5173`. Tu navegad
 
 ## 📂 Archivos y Estructura
 
-*   `src/main.js`: Lógica principal de UI, interacción de cámara, eventos y componentes *SweetAlert*.
+*   `src/main.js`: Controlador Principal (Orquestador de arranque). Une la intefaz con la librería del escáner centralizando los eventos globales.
+*   `src/ui/*` (`cart.js`, `inventory.js`, `productModal.js`): Módulos de componentes visuales compartimentados. Facilitan el mantenimiento profundo dividiendo las lógicas HTML.
 *   `src/storage.js`: Librería abstracta de persistencia. Funciones para crear, leer y actualizar el inventario y carrito frente a la base de datos `LocalStorage`.
 *   `src/style.css`: Estilado de las tarjetas Bootstrap, corrección de inputs de números para móviles y rediseño de las cajas fuertes predeterminadas del lector QR.
 *   `index.html`: La Interfaz del Usuario.
