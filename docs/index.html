@@ -12,7 +12,7 @@
   <!-- Iconos de Bootstrap para mejorar la UI (UX Premium) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <script type="module" crossorigin src="./assets/index-D64AN0Ii.js"></script>
+  <script type="module" crossorigin src="./assets/index-owtpRf1f.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor-scanner-DQT7ZQil.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-sweetalert-CxryAhEz.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-bootstrap-D7Q7Nh7Y.js">
@@ -178,6 +178,19 @@
             Tu catálogo está vacío.
           </div>
         </div>
+        
+        <!-- Novedad: Footer con Controles de Exportación/Importación en el Catalogo -->
+        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-between rounded-bottom-4">
+            <button class="btn btn-outline-secondary" id="btn-export-catalog">
+                <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+            </button>
+            <label class="btn btn-outline-primary mb-0" for="btn-import-catalog" style="cursor: pointer;">
+                <i class="bi bi-file-earmark-arrow-up"></i> Importar
+                <!-- Imput de Archivo Camuflado para mejor diseño UI -->
+                <input type="file" id="btn-import-catalog" accept=".json" style="display: none;">
+            </label>
+        </div>
+
       </div>
     </div>
   </div>
