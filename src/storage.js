@@ -11,6 +11,7 @@ const PRODUCTS_KEY = 'mercat_products_db';
 const CART_KEY = 'mercat_active_cart';
 const RECEIPTS_KEY = 'mercat_receipts_history';
 const BUDGET_KEY = 'mercat_budget';
+const SHOPPING_LIST_KEY = 'mercat_shopping_list';
 
 /**
  * Función genérica de flecha para obtener datos de LocalStorage.
@@ -286,3 +287,12 @@ export const getBudget = () => {
 export const setBudget = (amount) => {
     setStorage(BUDGET_KEY, amount);
 };
+
+// ==========================================
+// GESTIÓN DE LA LISTA DE LA COMPRA (PRE-VUELO)
+// ==========================================
+
+export const getShoppingList = () => getStorage(SHOPPING_LIST_KEY, []);
+
+export const setShoppingList = (list) => setStorage(SHOPPING_LIST_KEY, list);
+

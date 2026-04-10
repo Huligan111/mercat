@@ -12,6 +12,7 @@ import { initCartUI, renderCart } from './ui/cart.js';
 import { initInventoryUI } from './ui/inventory.js';
 import { initProductModalUI, setupModalForNew, openProductModalForEdit } from './ui/productModal.js';
 import { initHistoryUI } from './ui/history.js';
+import { initShoppingListUI } from './ui/shoppingList.js';
 
 // Elementos de la entrada manual
 const manualForm = document.getElementById('manual-form');
@@ -116,7 +117,8 @@ window.addEventListener('load', () => {
         initInventoryUI(openProductModalForEdit);    // Inyectamos dependencia cruzada
         initProductModalUI(resumeScanner);           // Inyectamos función para despertar escáner
         initHistoryUI();                             // Registramos el Módulo del Historial (Chart.js y Modal)
-        
+        initShoppingListUI();                        // Registramos el Bloc de Notas Predictivo
+
         renderCart(); 
         initCameraScanner(); 
     } catch (e) {

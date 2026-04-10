@@ -22,7 +22,10 @@
     <div class="container d-flex justify-content-between align-items-center">
       <span class="navbar-brand mb-0 h1"><i class="bi bi-cart-check"></i> Asistente de compras</span>
       <div>
-        <button class="btn btn-outline-light btn-sm fw-bold me-2 shadow-sm" id="btn-history" type="button">
+        <button class="btn btn-outline-light btn-sm fw-bold me-1 shadow-sm" id="btn-shopping-list" type="button">
+          <i class="bi bi-card-checklist"></i> Lista
+        </button>
+        <button class="btn btn-outline-light btn-sm fw-bold me-1 shadow-sm" id="btn-history" type="button">
           <i class="bi bi-graph-up"></i> Historial
         </button>
         <button class="btn btn-outline-light btn-sm fw-bold shadow-sm" id="btn-inventory" type="button">
@@ -243,6 +246,52 @@
             </label>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Novedad: Modal Bootstrap de LISTA DE LA COMPRA INTELIGENTE -->
+  <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-labelledby="shoppingListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
+          <h1 class="modal-title fs-5" id="shoppingListModalLabel"><i class="bi bi-card-checklist"></i> Mi Bloc de Notas</h1>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-0 position-relative bg-light">
+          
+          <!-- Bloque de búsqueda predictiva -->
+          <div class="p-3 bg-white border-bottom position-sticky top-0 shadow-sm" style="z-index: 10;">
+            <p class="text-muted small mb-2">Apunta lo que necesitas, se tachará automáticamente al pasarlo por caja.</p>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-pencil-square"></i></span>
+                <input type="text" id="shopping-list-input" class="form-control border-start-0 ps-0" placeholder="Añadir artículo rápido..." autocomplete="off">
+            </div>
+            
+            <!-- Caja de Sugerencias Pura (Dropdown invisible hasta que se escriba) -->
+            <ul id="shopping-list-suggestions" class="list-group position-absolute w-100 shadow-lg d-none" style="max-height: 200px; overflow-y: auto; z-index: 11; width: calc(100% - 2rem) !important;">
+                <!-- Se inyecta por JS -->
+            </ul>
+          </div>
+
+          <!-- Listado Principal -->
+          <div class="p-3">
+              <ul class="list-group list-group-flush rounded-3 shadow-sm" id="shopping-list-items">
+                <!-- Se inyectan tareas aquí -->
+              </ul>
+              
+              <div id="shopping-list-empty" class="text-center text-muted p-5">
+                <i class="bi bi-journal-text fs-1"></i><br>
+                Tu bloc está vacío.
+              </div>
+          </div>
+
+        </div>
+        <div class="modal-footer pb-3 pt-3 bg-white rounded-bottom-4 d-flex justify-content-center">
+            <button class="btn btn-outline-danger btn-sm rounded-pill" id="btn-clear-shopping-list">
+                <i class="bi bi-trash"></i> Vaciar Notas
+            </button>
+        </div>
       </div>
     </div>
   </div>

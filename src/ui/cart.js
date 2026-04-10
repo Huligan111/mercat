@@ -6,6 +6,7 @@
 
 import * as db from '../storage.js';
 import Swal from 'sweetalert2';
+import { syncAutoStrikethrough } from './shoppingList.js';
 
 // Referencias al DOM (Almacenadas a nivel de módulo por rendimiento)
 let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart, btnCheckout;
@@ -98,20 +99,34 @@ export const initCartUI = () => {
         });
     }
 
-    // Nuevo manejador de evento para el Checkout protegido con Confirmación Visual Cuidada
+    // Nuevo manejador de evento para el Checkout protegido con Confirmación Visual Cuidada y Prevención de Tareas
     if (btnCheckout) {
         btnCheckout.addEventListener('click', () => {
             const cart = db.getCart();
             if (cart.length === 0) return;
 
+            // Verificamos el Ángel de la Guarda (Lista de Tareas Inteligente)
+            const shoppingList = db.getShoppingList();
+            const pendingItems = shoppingList.filter(item => !item.done);
+            
+            let warningHtml = '';
+            if (pendingItems.length > 0) {
+                 const names = pendingItems.map(i => `<li>${i.name}</li>`).join('');
+                 warningHtml = `<div class="alert alert-danger text-start mt-3 border-0 shadow-sm" style="font-size: 0.9rem;">
+                                   <strong><i class="bi bi-exclamation-triangle"></i> ¡ATENCIÓN!</strong> Tienes apuntes sin tachar:
+                                   <ul class="mb-0 mt-1 pl-3">${names}</ul>
+                                </div>`;
+            }
+
             Swal.fire({
                 title: '¿Compra Finalizada?',
-                text: `Se guardará en el Historial tu ticket por importe de ${currentCartTotal.toFixed(2)}€ y se limpiará el carro.`,
-                icon: 'question',
+                html: `Se guardará en el Historial tu ticket por importe de <strong>${currentCartTotal.toFixed(2)}€</strong> y se limpiará el carro.
+                       ${warningHtml}`,
+                icon: pendingItems.length > 0 ? 'warning' : 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#198754', // Uso del Verde Nativo de Bootstrap para mayor armonía
+                confirmButtonColor: pendingItems.length > 0 ? '#dc3545' : '#198754', // Uso del Rojo si hay peligro, o Verde si todo OK
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Finalizar y Pagar',
+                confirmButtonText: pendingItems.length > 0 ? 'Ignorar y Pagar' : 'Finalizar y Pagar',
                 cancelButtonText: 'Cancelar',
                 backdrop: `rgba(0,0,0,0.7)` 
             }).then((result) => {
@@ -119,17 +134,32 @@ export const initCartUI = () => {
                     // Guardamos el recibo (Ticket) mandándole la Inyección al Storage
                     db.saveReceipt(currentCartTotal, cart);
                     
-                    // Ahora utilizamos el comportamiento heredado del vaciado para limpiar
+                    // Limpiamos Carro permanentemente
                     db.clearCart();
-                    renderCart();
                     
-                    Swal.fire({
-                        title: '¡Guardado!',
-                        text: 'El ticket contable se generó y ya es visible en gráficas.',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
+                    // Preguntamos amablemente si purgamos la lista pre-vuelo también
+                    if(shoppingList.length > 0) {
+                         Swal.fire({
+                              title: '¡Compra Registrada!',
+                              text: '¿Quieres que vacíe por completo también tu Bloc de Notas para la próxima vez?',
+                              icon: 'question',
+                              showCancelButton: true,
+                              confirmButtonText: 'Sí, limpiar Bloc',
+                              cancelButtonText: 'Mantener Bloc'
+                         }).then(r => {
+                              if(r.isConfirmed) db.setShoppingList([]); // Limpiamos tabla
+                              renderCart();
+                         });
+                    } else {
+                        renderCart();
+                        Swal.fire({
+                            title: '¡Guardado!',
+                            text: 'El ticket contable se generó y ya es visible en gráficas.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
                 }
             });
         });
@@ -230,6 +260,9 @@ export const renderCart = () => {
     
     // Inyección de escuchas de eventos (Vital ya que los botones son recreados de 0 en el HTML de arriba)
     attachCartButtonListeners();
+
+    // Auto-Strikethrough: Activamos el cruce con la DB de Notas Locales silenciosamente
+    syncAutoStrikethrough(cart);
 };
 
 /**
