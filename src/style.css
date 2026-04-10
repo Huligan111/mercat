@@ -41,8 +41,9 @@ input {
 }
 
 #reader__dashboard_section_swaplink {
-    display: none !important;
-    /* Oculta el texto "Scan an Image File" */
+    color: var(--bs-primary);
+    text-decoration: none;
+    font-weight: 500;
 }
 
 /* Ocultar el icono "i" de información de la librería */

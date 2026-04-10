@@ -367,14 +367,27 @@ const initCameraScanner = () => {
         // Callback en caso de exito al escanear
         const onScanSuccess = (decodedText, decodedResult) => {
             try {
+                // Solo intentamos pausar la cámara si está activa.
+                // Al escanear una foto desde la galería, pausar lanza un error.
                 if (html5QrcodeScanner) {
-                    html5QrcodeScanner.pause(true);
+                    try {
+                        html5QrcodeScanner.pause(true);
+                    } catch (pauseErr) {
+                        // Ignorar el fallo en pause() silenciosamente
+                    }
                 }
-                // Delegamos la logica
+                
+                // Delegamos la logica de negocio
                 handleBarcodeScanned(decodedText);
+                
             } catch (err) {
-                alert("Uy! Error al procesar: " + err.message);
-                if (html5QrcodeScanner) html5QrcodeScanner.resume();
+                // html5-qrcode a veces lanza strings puros en lugar de objetos Error
+                const errMsg = err.message ? err.message : err;
+                alert("Uy! Error al procesar: " + errMsg);
+                
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.resume(); } catch (e) {}
+                }
             }
         };
 
