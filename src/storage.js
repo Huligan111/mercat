@@ -100,6 +100,43 @@ export const deleteProduct = (barcode) => {
     setStorage(PRODUCTS_KEY, products);
 };
 
+/**
+ * Fusiona un array de productos importados con la Base de Datos actual.
+ * Si el producto existe, actualiza su precio/nombre. Si no, lo crea nuevo.
+ * @param {Array} importedArray - Lista de productos proveniente de un archivo JSON
+ * @returns {number} La cantidad de productos fusionados/añadidos exitosamente
+ */
+export const importProducts = (importedArray) => {
+    let products = getProductsDB();
+    let mergeCount = 0;
+    
+    if(!Array.isArray(importedArray)) return 0; // Escudo protector contra archivos corruptos
+
+    importedArray.forEach(importedProd => {
+        // Validación básica de integridad (Garantiza que no importemos basura)
+        if(importedProd && importedProd.barcode && importedProd.name !== undefined) {
+            
+            // Forzamos numérico el precio por precaución
+            const safeProduct = {
+                barcode: String(importedProd.barcode),
+                name: String(importedProd.name),
+                price: parseFloat(importedProd.price) || 0
+            };
+
+            const index = products.findIndex(p => p.barcode === safeProduct.barcode);
+            if (index > -1) {
+                products[index] = safeProduct; // Actualiza registro
+            } else {
+                products.push(safeProduct); // Añade registro nuevo
+            }
+            mergeCount++;
+        }
+    });
+
+    setStorage(PRODUCTS_KEY, products); // Guardamos lista entera permanentemente
+    return mergeCount;
+};
+
 // ==========================================
 // GESTIÓN DEL CARRITO DE LA COMPRA (ACTIVE CART)
 // ==========================================

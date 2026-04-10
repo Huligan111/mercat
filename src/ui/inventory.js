@@ -7,6 +7,7 @@
 import * as db from '../storage.js';
 import * as bootstrap from 'bootstrap';
 import { renderCart } from './cart.js'; // Necesitamos repintar el cart si borramos un producto del catálogo
+import Swal from 'sweetalert2';
 
 // Patrón avanzado: 'Dependency Injection'.
 // Guardamos una variable que contendrá una ruta hacia el modalEditar (de productModal.js)
@@ -15,6 +16,7 @@ let editProductCallback = null;
 
 // Punteros al DOM (Se cargan en init)
 let inventoryModalElement, inventoryList, emptyInventoryMsg, btnInventory, inventorySearch;
+let btnExport, btnImport; 
 let inventoryModal = null; // Guardará la instancia nativa de la ventana Modal de Bootstrap
 
 /**
@@ -29,6 +31,16 @@ export const initInventoryUI = (onEditProduct) => {
     emptyInventoryMsg = document.getElementById('empty-inventory-msg');
     btnInventory = document.getElementById('btn-inventory');
     inventorySearch = document.getElementById('inventory-search');
+    btnExport = document.getElementById('btn-export-catalog');
+    btnImport = document.getElementById('btn-import-catalog');
+
+    if (btnExport) {
+        btnExport.addEventListener('click', handleExportCatalog);
+    }
+    
+    if (btnImport) {
+        btnImport.addEventListener('change', handleImportCatalog);
+    }
 
     // Listener para Abrir la ventana emergente gigante del "Inventario"
     if (btnInventory) {
@@ -146,3 +158,80 @@ export const renderInventory = (searchTerm = '') => {
 export const showInventoryModal = () => {
     if(inventoryModal) inventoryModal.show();
 }
+
+// --- LÓGICA DE EXPORTACIÓN E IMPORTACIÓN ---
+
+/**
+ * Descarga la memoria local (LocalStorage) física a un archivo plano JSON utilizable portátilmente.
+ */
+const handleExportCatalog = () => {
+    const products = db.getProductsDB();
+    if(products.length === 0) {
+        Swal.fire('Catálogo Vacío', 'Aún no tienes productos escaneados.', 'info');
+        return;
+    }
+
+    // Convertimos la memoria a texto crudo (JSON) de forma espaciada y bonita (indentación = 2 espacios)
+    const dataStr = JSON.stringify(products, null, 2);
+    
+    // Fabricamos un objeto tipo "Archivo Textual" flotante en memoria (Blob API del Navegador)
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Truco clásico web: Creamos un enlace <a> falso, le damos la url temporal, auto-clic invisible y lo borramos
+    const a = document.createElement('a');
+    a.href = url;
+    // Le pones el título al archivo añadiéndole la fecha de hoy para diferenciar backups. (ej. mercat_catalog_2026-10-14.json)
+    a.download = `mercat_catalog_${new Date().toISOString().slice(0,10)}.json`; 
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    URL.revokeObjectURL(url); // Limpiamos memoria ram destruyendo la URL flotante
+};
+
+/**
+ * Recibe un archivo JSON desde el input de PC/Móvil del usuario y lo lee asíncronamente para fusionarlo.
+ */
+const handleImportCatalog = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // FileReader es una API nativa de JavaScript que permite leer las entrañas de los archivos locales del móvil
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            // Intentamos descifrar (parse) el texto asumiendo que es un JSON puro
+            const importedData = JSON.parse(e.target.result);
+            
+            if(!Array.isArray(importedData)) throw new Error("Formato alienígena no soportado.");
+
+            // Dialogo de Alta Seguridad. Evita machaques no intencionados.
+            Swal.fire({
+                title: '¿Fusionar Catálogos?',
+                text: `Se han detectado ${importedData.length} productos en la copia de seguridad. Se actualizarán los precios coincidentes y se añadirán los nuevos. ¡Tus productos propios no se borrarán!`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Sí, fusionar e importar'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    // Llamamos a la lógica interna que construimos en storage.js
+                    const mergedCount = db.importProducts(importedData);
+                    
+                    renderInventory(); // Repintamos la ventana del modal que el usuario ya tiene abierta
+                    renderCart();      // IMPORTANTÍSIMO: Si importé la BD de mi hermano y la leche que estaba en mi carro ahora es más barata, refrescamos el importe total global!
+                    
+                    Swal.fire('Copia Desplegada', `Se han asimilado ${mergedCount} productos correctamente a tu móvil.`, 'success');
+                }
+                event.target.value = ''; // Limpiar la huella del File Explorer. Así el usuario podrá subir el mismo archivo otra vez si lo borra.
+            });
+
+        } catch (error) {
+            Swal.fire('Error de Lectura', 'El archivo está corrupto o no pertenece a Mercat App.', 'error');
+            event.target.value = ''; // Limpiamos incluso en caso de error
+        }
+    };
+    // Desencadena la lectura del archivo a texto por fin
+    reader.readAsText(file);
+};

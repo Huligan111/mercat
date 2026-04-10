@@ -11,6 +11,7 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 *   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una AppStore final.
 *   **🎨 Alertas Animadas Premium**: Integración de notificaciones sutiles con SweetAlert2.
 *   **✏️ Gestión CRUD Total**: Edita nombres, altera precios si han subido/bajado o borra elementos del catálogo con un clic.
+*   **📦 Backups Transparentes**: Sistema de Exportación e Importación inteligente. Descarga todo tu catálogo en formato abierto (`JSON`) y compártelo o fusiónalo con listas de otros familiares sin necesitar de bases de datos de terceros.
 
 ## 🛠 Tecnologías Utilizadas
 
