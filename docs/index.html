@@ -12,11 +12,11 @@
   <!-- Iconos de Bootstrap para mejorar la UI (UX Premium) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <script type="module" crossorigin src="./assets/index-DUq5rkMx.js"></script>
+  <script type="module" crossorigin src="./assets/index-C6yz3iFh.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor-scanner-DQT7ZQil.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-sweetalert-CxryAhEz.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-bootstrap-D7Q7Nh7Y.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-B9gBDxFC.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-Drk9OVXv.css">
 <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
 
 <body class="bg-light">
@@ -103,8 +103,16 @@
   <!-- Sticky Footer: Total siempre visible para una cómoda experiencia de usuario en móvil -->
   <div class="fixed-bottom bg-white border-top shadow-lg p-3 d-flex justify-content-between align-items-center"
     style="z-index: 1040;">
-    <h4 class="mb-0 text-muted">Total:</h4>
-    <h2 class="mb-0 text-primary fw-bold" id="cart-total">0.00 €</h2>
+    <div class="d-flex align-items-center">
+        <h4 class="mb-0 text-muted me-2">Total:</h4>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm" id="btn-set-budget" title="Configurar Límite" aria-label="Configurar Presupuesto">
+            <i class="bi bi-piggy-bank"></i>
+        </button>
+    </div>
+    <div class="text-end">
+        <h2 class="mb-0 text-primary fw-bold transition-all" id="cart-total" style="transition: color 0.3s ease;">0.00 €</h2>
+        <small id="budget-display" class="text-muted d-none" style="font-size: 0.75rem;">Max: <span id="budget-amount">0</span>€</small>
+    </div>
   </div>
 
   <!-- Modal Bootstrap para Registrar Nuevos Productos en la Base de Datos Local -->

@@ -9,6 +9,7 @@ import Swal from 'sweetalert2';
 
 // Referencias al DOM (Almacenadas a nivel de módulo por rendimiento)
 let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart, btnCheckout;
+let btnSetBudget, budgetDisplay, budgetAmountDisplay;
 let currentCartTotal = 0; // Guardará en RAM la suma para cuando el usuario presione Finalizar Compra
 
 /**
@@ -21,6 +22,44 @@ export const initCartUI = () => {
     emptyCartMsg = document.getElementById('empty-cart-msg');
     btnClearCart = document.getElementById('btn-clear-cart');
     btnCheckout = document.getElementById('btn-checkout');
+    btnSetBudget = document.getElementById('btn-set-budget');
+    budgetDisplay = document.getElementById('budget-display');
+    budgetAmountDisplay = document.getElementById('budget-amount');
+
+    // Manejador del Sistema de Presupuestos (Pregunta al usuario y activa el techo de gasto)
+    if (btnSetBudget) {
+        btnSetBudget.addEventListener('click', () => {
+            Swal.fire({
+                title: 'Presupuesto Máximo',
+                text: '¿Cuánto quieres gastar como máximo en esta compra? (El total pitará si te pasas. Usa 0 para desactivar)',
+                input: 'number',
+                inputAttributes: { min: 0, step: 1 },
+                inputValue: db.getBudget() || '',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Fijar Límite',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if(result.isConfirmed) {
+                    const limit = parseFloat(result.value) || 0;
+                    db.setBudget(limit);
+                    
+                    // Forzar repintado inmediato para que el Footer reaccione y decida si debe latir en rojo
+                    renderCart(); 
+                    
+                    if (limit > 0) {
+                        Swal.fire({ 
+                            title: '¡Vigilando!', 
+                            text: `Avisaremos si cruzas la barrera de los ${limit}€`, 
+                            icon: 'success', 
+                            timer: 2000, 
+                            showConfirmButton: false 
+                        });
+                    }
+                }
+            });
+        });
+    }
 
     // Asignamos el evento al botón general de "Vaciar Carrito"
     if (btnClearCart) {
@@ -165,6 +204,29 @@ export const renderCart = () => {
     // Actualizamos el sumatorio global que irá en la parte inferior adhesiva de la app (footer)
     cartTotalElement.textContent = `${totalAcumulado.toFixed(2)} €`;
     currentCartTotal = totalAcumulado; // Metemos la cantidad final en Caché para que btnCheckout pueda leerla
+    
+    // --- Lógica del Presupuesto Máximo (Animación visual de Peligro) ---
+    const currentBudget = db.getBudget();
+    if (currentBudget > 0 && budgetDisplay && budgetAmountDisplay) {
+        // Enseñar rótulo pequeñito de 'Max: X€'
+        budgetDisplay.classList.remove('d-none');
+        budgetAmountDisplay.textContent = currentBudget;
+        
+        if (totalAcumulado > currentBudget) {
+            // [CRÍTICO] Presupuesto superado: Cambiar clase inerte azul por animación 'latido' roja
+            cartTotalElement.classList.remove('text-primary');
+            cartTotalElement.classList.add('budget-warning');
+        } else {
+            // [SEGURO] Presupuesto bajo control: Volver al azul corporativo Bootstrap
+            cartTotalElement.classList.remove('budget-warning');
+            cartTotalElement.classList.add('text-primary');
+        }
+    } else {
+        // [DESACTIVADO] El usuario no ha fijado límites
+        if (budgetDisplay) budgetDisplay.classList.add('d-none');
+        cartTotalElement.classList.remove('budget-warning');
+        cartTotalElement.classList.add('text-primary');
+    }
     
     // Inyección de escuchas de eventos (Vital ya que los botones son recreados de 0 en el HTML de arriba)
     attachCartButtonListeners();

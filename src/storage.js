@@ -10,6 +10,7 @@
 const PRODUCTS_KEY = 'mercat_products_db';
 const CART_KEY = 'mercat_active_cart';
 const RECEIPTS_KEY = 'mercat_receipts_history';
+const BUDGET_KEY = 'mercat_budget';
 
 /**
  * Función genérica de flecha para obtener datos de LocalStorage.
@@ -263,4 +264,25 @@ export const deleteReceipt = (ticketId) => {
     // Filtramos machacando array omitiendo el ticket borrado
     receipts = receipts.filter(r => r.id !== ticketId);
     setStorage(RECEIPTS_KEY, receipts);
+};
+
+// ==========================================
+// GESTIÓN DEL LÍMITE PRESUPUESTARIO
+// ==========================================
+
+/**
+ * Recupera el Presupuesto Límite guardado en base de datos.
+ * @returns {number} Cantidad límite (0 si no se ha configurado ninguno)
+ */
+export const getBudget = () => {
+    const data = getStorage(BUDGET_KEY);
+    return data ? parseFloat(data) : 0;
+};
+
+/**
+ * Fija un techo máximo de gasto para el usuario.
+ * @param {number} amount - Euros netos límite.
+ */
+export const setBudget = (amount) => {
+    setStorage(BUDGET_KEY, amount);
 };
