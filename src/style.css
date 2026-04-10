@@ -41,9 +41,7 @@ input {
 }
 
 #reader__dashboard_section_swaplink {
-    color: var(--bs-primary);
-    text-decoration: none;
-    font-weight: 500;
+    display: none !important;
 }
 
 /* Ocultar el icono "i" de información de la librería */

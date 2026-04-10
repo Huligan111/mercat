@@ -11,6 +11,7 @@ import Swal from 'sweetalert2';
 import { initCartUI, renderCart } from './ui/cart.js';
 import { initInventoryUI } from './ui/inventory.js';
 import { initProductModalUI, setupModalForNew, openProductModalForEdit } from './ui/productModal.js';
+import { initHistoryUI } from './ui/history.js';
 
 // Elementos de la entrada manual
 const manualForm = document.getElementById('manual-form');
@@ -68,6 +69,9 @@ const resumeScanner = () => {
 
 const initCameraScanner = () => {
     try {
+        // Vaciamos primero cualquier basura previa para prevenir el error 'removeChild on Node'
+        document.getElementById('reader').innerHTML = '';
+
         html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", 
             { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.0 }, 
@@ -111,6 +115,7 @@ window.addEventListener('load', () => {
         initCartUI();
         initInventoryUI(openProductModalForEdit);    // Inyectamos dependencia cruzada
         initProductModalUI(resumeScanner);           // Inyectamos función para despertar escáner
+        initHistoryUI();                             // Registramos el Módulo del Historial (Chart.js y Modal)
         
         renderCart(); 
         initCameraScanner(); 

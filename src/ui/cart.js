@@ -8,7 +8,8 @@ import * as db from '../storage.js';
 import Swal from 'sweetalert2';
 
 // Referencias al DOM (Almacenadas a nivel de módulo por rendimiento)
-let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart;
+let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart, btnCheckout;
+let currentCartTotal = 0; // Guardará en RAM la suma para cuando el usuario presione Finalizar Compra
 
 /**
  * Inicializador principal del UI del Carrito.
@@ -19,6 +20,7 @@ export const initCartUI = () => {
     cartTotalElement = document.getElementById('cart-total');
     emptyCartMsg = document.getElementById('empty-cart-msg');
     btnClearCart = document.getElementById('btn-clear-cart');
+    btnCheckout = document.getElementById('btn-checkout');
 
     // Asignamos el evento al botón general de "Vaciar Carrito"
     if (btnClearCart) {
@@ -53,6 +55,43 @@ export const initCartUI = () => {
                       showConfirmButton: false
                   });
               }
+            });
+        });
+    }
+
+    // Nuevo manejador de evento para el Checkout protegido con Confirmación Visual Cuidada
+    if (btnCheckout) {
+        btnCheckout.addEventListener('click', () => {
+            const cart = db.getCart();
+            if (cart.length === 0) return;
+
+            Swal.fire({
+                title: '¿Compra Finalizada?',
+                text: `Se guardará en el Historial tu ticket por importe de ${currentCartTotal.toFixed(2)}€ y se limpiará el carro.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754', // Uso del Verde Nativo de Bootstrap para mayor armonía
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Finalizar y Pagar',
+                cancelButtonText: 'Cancelar',
+                backdrop: `rgba(0,0,0,0.7)` 
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    // Guardamos el recibo (Ticket) mandándole la Inyección al Storage
+                    db.saveReceipt(currentCartTotal, cart);
+                    
+                    // Ahora utilizamos el comportamiento heredado del vaciado para limpiar
+                    db.clearCart();
+                    renderCart();
+                    
+                    Swal.fire({
+                        title: '¡Guardado!',
+                        text: 'El ticket contable se generó y ya es visible en gráficas.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
             });
         });
     }
@@ -125,6 +164,7 @@ export const renderCart = () => {
 
     // Actualizamos el sumatorio global que irá en la parte inferior adhesiva de la app (footer)
     cartTotalElement.textContent = `${totalAcumulado.toFixed(2)} €`;
+    currentCartTotal = totalAcumulado; // Metemos la cantidad final en Caché para que btnCheckout pueda leerla
     
     // Inyección de escuchas de eventos (Vital ya que los botones son recreados de 0 en el HTML de arriba)
     attachCartButtonListeners();

@@ -9,6 +9,7 @@
 // Utilizamos constantes para evitar errores tipográficos al buscar las claves en la memoria.
 const PRODUCTS_KEY = 'mercat_products_db';
 const CART_KEY = 'mercat_active_cart';
+const RECEIPTS_KEY = 'mercat_receipts_history';
 
 /**
  * Función genérica de flecha para obtener datos de LocalStorage.
@@ -224,3 +225,42 @@ export const decreaseQuantity = (barcode) => {
  * Vacía el carrito por completo simulando pagar la compra.
  */
 export const clearCart = () => setStorage(CART_KEY, []);
+
+// ==========================================
+// GESTIÓN DEL HISTORIAL DE COMPRAS (TICKETS)
+// ==========================================
+
+/**
+ * Obtiene el historial completo de compras guardadas.
+ * @returns {Array} Array con todos los tickets históricos.
+ */
+export const getReceipts = () => getStorage(RECEIPTS_KEY, []);
+
+/**
+ * Guarda un ticket en memoria tras finalizar compra.
+ * @param {number} totalAmount - Total de la compra en euros
+ * @param {Array} items - Los elementos comprados
+ */
+export const saveReceipt = (totalAmount, items) => {
+    const receipts = getReceipts();
+    const newReceipt = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        total: totalAmount,
+        itemsCount: items.length,
+        items: items // Almacenamos el array completo de productos en el ticket para poder desglosarlos visualmente después
+    };
+    receipts.push(newReceipt);
+    setStorage(RECEIPTS_KEY, receipts);
+};
+
+/**
+ * Elimina definitivamente un ticket del Historial de Compras.
+ * @param {number} ticketId - El Timestamp o ID exacto del ticket a exterminar 
+ */
+export const deleteReceipt = (ticketId) => {
+    let receipts = getReceipts();
+    // Filtramos machacando array omitiendo el ticket borrado
+    receipts = receipts.filter(r => r.id !== ticketId);
+    setStorage(RECEIPTS_KEY, receipts);
+};
