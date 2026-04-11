@@ -4,7 +4,7 @@
  */
 import './style.css'; 
 import * as db from './storage.js';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import Swal from 'sweetalert2';
 
 // Importamos los Módulos de Componentes Visuales Creados
@@ -34,11 +34,42 @@ const playSuccessSound = () => {
 const handleBarcodeScanned = (decodedText) => {
     playSuccessSound();
     
-    // Buscar si el producto existe
-    const product = db.findProductByBarcode(decodedText);
+    let searchBarcode = decodedText;
+    let injectedPrice = null;
+
+    // MAGIA: Interceptor de GS1 Digital Link (QRs de peso variable tipo Mercadona)
+    // Ej: https://qrtrack.mercadona.es/01/08436581961300/...&3922=00415
+    if (decodedText.startsWith('http') && decodedText.includes('/01/')) {
+        // 1. Extraer el GTIN (Código de Barras)
+        const gtinMatch = decodedText.match(/\/01\/(\d+)/);
+        if (gtinMatch && gtinMatch[1]) {
+            let gtin = gtinMatch[1];
+            // Estándar: Convertir GTIN-14 a EAN-13 retirando el 0 inicial
+            if (gtin.length === 14 && gtin.startsWith('0')) {
+                searchBarcode = gtin.substring(1);
+            } else {
+                searchBarcode = gtin;
+            }
+        }
+
+        // 2. Extraer el Precio Específico de la bandeja (3922 indica importe con 2 decimales)
+        const priceMatch = decodedText.match(/3922=(\d+)/);
+        if (priceMatch && priceMatch[1]) {
+            injectedPrice = parseInt(priceMatch[1], 10) / 100; // Ej: 00574 -> 5.74€
+        }
+    }
+
+    // Buscar si el producto existe con la cadena de EAN13 limpia
+    let product = db.findProductByBarcode(searchBarcode);
     
     if (product) {
-       // PASO POSITIVO: añadir y avisar bonito
+       // PASO POSITIVO: Clona y Modifica el precio si viene inyectado por QR Dinámico
+       if (injectedPrice !== null) {
+           product = { ...product }; // Clon profundo rápido
+           product.price = injectedPrice;
+           product.isVariablePrice = true; // Flag para que el carrito lo divida en fila propia
+       }
+
        db.addToCart(product);
        renderCart();
        
@@ -57,8 +88,9 @@ const handleBarcodeScanned = (decodedText) => {
        setTimeout(() => resumeScanner(), 2000);
        
     } else {
-       // PASO NEGATIVO: forzar modal creación
-       setupModalForNew(decodedText);
+       // PASO NEGATIVO: forzar modal creación con EAN-13 limpio y precio pre-rellenado (si existe)
+       // Se envía injectedPrice si fue descubierto en el QR!
+       setupModalForNew(searchBarcode, injectedPrice);
     }
 };
 
@@ -75,7 +107,23 @@ const initCameraScanner = () => {
 
         html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", 
-            { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.0 }, 
+            { 
+                fps: 30, // TRIPLE de velocidad de muestreo. Consume más batería pero caza al vuelo.
+                qrbox: 250, 
+                aspectRatio: 1.0,
+                // Limitamos a los formatos de Súper (EAN) y Charcutería (QR) para que la CPU no pierda el tiempo buscando códigos espaciales o cajas de Amazon (Code128)
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX // Por si algún súper europeo los usa
+                ],
+                // Activar acelerador nativo: Usa los Servicios de Google Play Vision en Android en vez de la CPU simulada!
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
+            }, 
             false
         );
 

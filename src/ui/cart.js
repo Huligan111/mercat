@@ -206,10 +206,10 @@ export const renderCart = () => {
             <td class="text-center align-middle py-3">
                 <!-- Selectores de cantidad con diseño botonera tipo "Controlador" -->
                 <div class="btn-group btn-group-sm mb-2" role="group" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <button type="button" class="btn btn-outline-primary btn-decrease" data-barcode="${item.barcode}">-</button>
+                    <button type="button" class="btn btn-outline-primary btn-decrease" data-id="${item.uniqueId || item.barcode}">-</button>
                     <!-- El número intermedio no es clicleable (disabled) solo tiene función visual -->
                     <button type="button" class="btn btn-outline-primary fw-bold" disabled style="color: black;">${item.quantity}</button>
-                    <button type="button" class="btn btn-outline-primary btn-increase" data-barcode="${item.barcode}">+</button>
+                    <button type="button" class="btn btn-outline-primary btn-increase" data-id="${item.uniqueId || item.barcode}">+</button>
                 </div>
                 <!-- Mini etiqueta verde para recordar el precio original de la unidad -->
                 <div class="fw-bold text-success fs-5">
@@ -222,7 +222,7 @@ export const renderCart = () => {
             </td>
             <td class="align-middle">
                 <!-- Botón eliminar sin bordes y color suave para no ensuciar la visual -->
-                <button class="btn btn-sm text-danger btn-delete border-0" data-barcode="${item.barcode}">
+                <button class="btn btn-sm text-danger btn-delete border-0" data-id="${item.uniqueId || item.barcode}">
                     <i class="bi bi-trash3 fs-5"></i>
                 </button>
             </td>
@@ -274,7 +274,7 @@ const attachCartButtonListeners = () => {
     // Escucha para restar cantidad
     document.querySelectorAll('.btn-decrease').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            db.decreaseQuantity(e.target.dataset.barcode);
+            db.decreaseQuantity(e.target.dataset.id);
             renderCart(); // Forzamos refresco gráfico tras descontar
         });
     });
@@ -282,7 +282,7 @@ const attachCartButtonListeners = () => {
     // Escucha para sumar cantidad
     document.querySelectorAll('.btn-increase').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            db.increaseQuantity(e.target.dataset.barcode);
+            db.increaseQuantity(e.target.dataset.id);
             renderCart(); // Forzamos refresco gráfico
         });
     });
@@ -291,8 +291,8 @@ const attachCartButtonListeners = () => {
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
             // Buscamos el origen del botón más cercano resolviendo el problema de hacer tap en el icono basura
-            const barCode = e.target.closest('button').dataset.barcode;
-            db.removeFromCart(barCode);
+            const itemId = e.target.closest('button').dataset.id;
+            db.removeFromCart(itemId);
             renderCart(); 
         });
     });

@@ -6,6 +6,7 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 
 *   **📷 Escáner de Códigos de Barras Intencional**: Lector integrado súper rápido. Pausa automática al detectar productos para que no se vuelva loco leyendo el mismo producto.
 *   **📲 Instalación Nativa (PWA)**: Descargable e instalable en la pantalla de inicio de dispositivos iOS/Android. Soporte 100% **Offline** (tu catálogo y la cámara seguirán funcionando en modo avión) y sistema *autoUpdate* silencioso.
+*   **🥩 Escáner Avanzado de Frescos (GS1 Digital Link)**: Inteligencia inyectada para decodificar al vuelo URLs densas de códigos QR de supermercados (ej: etiquetas Mercadona). Extrae el GTIN puro, aísla el peso variable y sobreescribe dinámicamente tu importe exacto de caja.
 *   **💾 Inventario Local-First**: Todo lo que escaneas se guarda de por vida en la memoria de tu móvil (LocalStorage) sin bases de datos ajenas.
 *   **📝 Bloc de Notas Predictivo (Shopping List)**: Crea tu lista de compra antes de salir de casa. El autocompletado localizará tus productos del Catálogo, ¡y según vayas pasándolos por la cámara se **tacharán automáticamente** de la lista!
 *   **🚨 Cúpula de Presupuesto**: Márcate un tope de gasto al entrar al súper. La contabilidad pulsará en un rojo agresivo cuando traspases la barrera para proteger tus ahorros.

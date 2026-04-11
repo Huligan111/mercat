@@ -66,8 +66,9 @@ export const initProductModalUI = (onClose) => {
 /**
  * Mutabilidad visual a "Modo: Creador" (Cuando la cámara escanea algo virgen/desconocido)
  * @param {string} barcodeText - Dígitos puros descubiertos por la cámara.
+ * @param {number|null} injectedPrice - Si el código era un QR de charcutería, viene con precio impuesto.
  */
-export const setupModalForNew = (barcodeText) => {
+export const setupModalForNew = (barcodeText, injectedPrice = null) => {
     isEditingFromInventory = false; // Interruptor: MODO CREATE
     
     // 1. Camuflaje Front-end (Textos, iconos e instrucciones adaptadas)
@@ -81,7 +82,8 @@ export const setupModalForNew = (barcodeText) => {
     // Pegar el código que leyó la cámara para ahorrar tipado manual
     if (formBarcode) formBarcode.value = barcodeText; 
     if (formName) formName.value = '';
-    if (formPrice) formPrice.value = '';
+    // Pegar el precio solo si ha venido inyectado por la báscula/QR
+    if (formPrice) formPrice.value = injectedPrice !== null ? injectedPrice : '';
 
     showModal();
 };

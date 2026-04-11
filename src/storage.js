@@ -158,34 +158,38 @@ export const saveCart = (cart) => setStorage(CART_KEY, cart);
 
 /**
  * Añade un producto al carrito. Si ya existe, incrementa su cantidad.
+ * IMPORTANTE: Si es de precio variable (charcutería), ocupa fila separada.
  * @param {Object} product - El producto que leemos del scanner o formulario.
  */
 export const addToCart = (product) => {
     const cart = getCart(); // Obtenemos la lista actual
     
-    // Buscamos si este producto ya ha sido añadido al carrito previamente
-    const existingItem = cart.find(item => item.barcode === product.barcode);
+    // Asignación de ID Único: Si es Variable se firma criptográficamente para no mezclarse
+    const itemUniqueId = product.isVariablePrice 
+        ? `${product.barcode}_${Date.now()}`
+        : product.barcode;
     
-    if (existingItem) {
-        // Si existe, modificamos el objeto original sumando 1 a la cantidad de ese item
+    // Buscamos coincidencia estricta
+    const existingItem = cart.find(item => item.uniqueId === itemUniqueId);
+    
+    if (existingItem && !product.isVariablePrice) {
+        // Si existe y es normal, sumamos 1 a la pila
         existingItem.quantity += 1;
     } else {
-        // Si no existe, lo metemos en el carrito con cantidad inicial 1
-        // Usamos el "spread operator" (...) Moderno de JS para crear un nuevo objeto combinando propiedades
-        cart.push({ ...product, quantity: 1 });
+        // En caso contrario (Nuevo o Variable), creamos fila virgen
+        cart.push({ ...product, uniqueId: itemUniqueId, quantity: 1 });
     }
     
-    // Guardamos el carrito actualizado permanentemente
     saveCart(cart);
 };
 
 /**
  * Aumenta la cantidad explícitamente en el carrito
- * @param {string} barcode 
+ * @param {string} uniqueId 
  */
-export const increaseQuantity = (barcode) => {
+export const increaseQuantity = (uniqueId) => {
     const cart = getCart();
-    const item = cart.find(item => item.barcode === barcode);
+    const item = cart.find(item => item.uniqueId === uniqueId);
     if(item) {
         item.quantity += 1;
         saveCart(cart);
@@ -193,31 +197,27 @@ export const increaseQuantity = (barcode) => {
 }
 
 /**
- * Elimina completamente un producto del carrito, sin importar la cantidad.
- * Utiliza el método moderno `.filter()` para quitarlo de forma inmutable y elegante.
- * @param {string} barcode - Código de barras del producto a eliminar.
+ * Elimina completamente una fila del carrito.
+ * @param {string} uniqueId - ID primario a eliminar.
  */
-export const removeFromCart = (barcode) => {
+export const removeFromCart = (uniqueId) => {
     let cart = getCart();
-    // Filtramos para quedarnos con todos los productos MENOS el que queremos eliminar
-    cart = cart.filter(item => item.barcode !== barcode);
+    cart = cart.filter(item => item.uniqueId !== uniqueId);
     saveCart(cart);
 };
 
 /**
- * Disminuye la cantidad de un producto. Si llega a 0, se elimina automáticamente.
- * @param {string} barcode - Código de barras del producto.
+ * Disminuye la cantidad de una fila. Si llega a 0, se elimina automáticamente.
+ * @param {string} uniqueId - ID primario de la fila.
  */
-export const decreaseQuantity = (barcode) => {
+export const decreaseQuantity = (uniqueId) => {
     let cart = getCart();
-    // Obtenemos el índice exacto en el array usando findIndex
-    const itemIndex = cart.findIndex(item => item.barcode === barcode);
+    const itemIndex = cart.findIndex(item => item.uniqueId === uniqueId);
     
     if (itemIndex > -1) {
         cart[itemIndex].quantity -= 1;
-        // Si la cantidad baja a cero, lo quitamos completamente de la lista usando splice
         if (cart[itemIndex].quantity <= 0) {
-            cart.splice(itemIndex, 1); // Splice remueve 1 unidad desde la posición itemIndex
+            cart.splice(itemIndex, 1);
         }
     }
     saveCart(cart);
