@@ -222,7 +222,7 @@ if (manualBarcode && manualSuggestions) {
 window.addEventListener('load', () => {
     try {
         initCartUI();
-        initInventoryUI(openProductModalForEdit);    // Inyectamos dependencia cruzada
+        initInventoryUI(openProductModalForEdit, setupModalForNew);    // Inyectamos dependencias cruzadas (Editar y Añadir)
         initProductModalUI(resumeScanner);           // Inyectamos función para despertar escáner
         initHistoryUI();                             // Registramos el Módulo del Historial (Chart.js y Modal)
         initShoppingListUI();                        // Registramos el Bloc de Notas Predictivo

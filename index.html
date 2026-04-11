@@ -239,12 +239,16 @@
           </div>
         </div>
         
-        <!-- Novedad: Footer con Controles de Exportación/Importación en el Catalogo -->
-        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-between rounded-bottom-4">
-            <button class="btn btn-outline-secondary" id="btn-export-catalog">
+        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-center gap-1 flex-nowrap rounded-bottom-4">
+            <button class="btn btn-sm btn-outline-secondary" id="btn-export-catalog">
                 <i class="bi bi-file-earmark-arrow-down"></i> Exportar
             </button>
-            <label class="btn btn-outline-primary mb-0" for="btn-import-catalog" style="cursor: pointer;">
+            
+            <button class="btn btn-sm btn-primary shadow-sm fw-bold px-3" id="btn-inventory-add-product">
+                <i class="bi bi-plus-lg"></i> Insertar
+            </button>
+
+            <label class="btn btn-sm btn-outline-primary mb-0" for="btn-import-catalog" style="cursor: pointer;">
                 <i class="bi bi-file-earmark-arrow-up"></i> Importar
                 <!-- Imput de Archivo Camuflado para mejor diseño UI -->
                 <input type="file" id="btn-import-catalog" accept=".json" style="display: none;">

@@ -13,18 +13,21 @@ import Swal from 'sweetalert2';
 // Guardamos una variable que contendrá una ruta hacia el modalEditar (de productModal.js)
 // Para que se puedan abrir sin crear dependencias mutuas circulares (error de compilación).
 let editProductCallback = null;
+let addProductCallback = null;
 
 // Punteros al DOM (Se cargan en init)
 let inventoryModalElement, inventoryList, emptyInventoryMsg, btnInventory, inventorySearch;
-let btnExport, btnImport; 
+let btnExport, btnImport, btnAddManual; 
 let inventoryModal = null; // Guardará la instancia nativa de la ventana Modal de Bootstrap
 
 /**
  * Función inicial para enlazar los HTML
- * @param {Function} onEditProduct - El callback proveniente del módulo Modal.
+ * @param {Function} onEditProduct - El callback para editar (módulo Modal).
+ * @param {Function} onAddProduct - El callback para añadir nuevo (módulo Modal).
  */
-export const initInventoryUI = (onEditProduct) => {
-    editProductCallback = onEditProduct; // Acoplamos la función
+export const initInventoryUI = (onEditProduct, onAddProduct) => {
+    editProductCallback = onEditProduct; 
+    addProductCallback = onAddProduct;
 
     inventoryModalElement = document.getElementById('inventoryModal');
     inventoryList = document.getElementById('inventory-list');
@@ -33,6 +36,7 @@ export const initInventoryUI = (onEditProduct) => {
     inventorySearch = document.getElementById('inventory-search');
     btnExport = document.getElementById('btn-export-catalog');
     btnImport = document.getElementById('btn-import-catalog');
+    btnAddManual = document.getElementById('btn-inventory-add-product');
 
     if (btnExport) {
         btnExport.addEventListener('click', handleExportCatalog);
@@ -40,6 +44,16 @@ export const initInventoryUI = (onEditProduct) => {
     
     if (btnImport) {
         btnImport.addEventListener('change', handleImportCatalog);
+    }
+
+    if (btnAddManual) {
+        btnAddManual.addEventListener('click', () => {
+            // Cerramos el catálogo para ver el formulario limpio de creación
+            if(inventoryModal) inventoryModal.hide();
+            
+            // Llamamos a la función de creación con barcode vacío (se rellenará a mano)
+            if(addProductCallback) addProductCallback("");
+        });
     }
 
     // Listener para Abrir la ventana emergente gigante del "Inventario"
