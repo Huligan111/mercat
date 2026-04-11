@@ -46,14 +46,19 @@
           <!-- Contenedor donde se insertará el Feed de la cámara -->
           <div id="reader" width="100%" class="mb-3 rounded overflow-hidden"></div>
 
-          <!-- Fallback: Entrada manual si la cámara falla o no lee -->
-          <form id="manual-form" class="input-group">
-            <input type="text" id="manual-barcode" class="form-control" placeholder="Entrada manual..."
-              aria-label="Código manual">
-            <button class="btn btn-outline-primary" type="submit" id="btn-manual-add">
-              <i class="bi bi-search"></i> Buscar
-            </button>
-          </form>
+          <!-- Fallback: Entrada manual predictiva -->
+          <div class="position-relative">
+              <form id="manual-form" class="input-group">
+                <input type="text" id="manual-barcode" class="form-control" placeholder="Buscar por código o nombre..."
+                  aria-label="Código manual" autocomplete="off">
+                <button class="btn btn-outline-primary" type="submit" id="btn-manual-add">
+                  <i class="bi bi-search"></i> Buscar
+                </button>
+              </form>
+              <!-- Dropdown de sugerencias predictivas -->
+              <ul id="manual-suggestions" class="list-group position-absolute w-100 shadow-lg d-none text-start mt-1" style="max-height: 200px; overflow-y: auto; z-index: 1050;">
+              </ul>
+          </div>
         </div>
       </div>
 

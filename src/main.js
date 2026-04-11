@@ -146,7 +146,10 @@ const initCameraScanner = () => {
     }
 }
 
-// Búsqueda Manual
+// Búsqueda Manual Avanzada (Predictiva)
+const manualSuggestions = document.getElementById('manual-suggestions');
+
+// 1. Envío clásico (darle al Enter)
 if (manualForm) {
     manualForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -154,6 +157,63 @@ if (manualForm) {
         if (code !== "") {
             handleBarcodeScanned(code);
             manualBarcode.value = '';
+            if (manualSuggestions) manualSuggestions.classList.add('d-none');
+        }
+    });
+}
+
+// 2. Lógica Predictiva (Auto-completado en vivo)
+if (manualBarcode && manualSuggestions) {
+    manualBarcode.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        
+        if (query.length === 0) {
+            manualSuggestions.classList.add('d-none');
+            return;
+        }
+
+        const allProducts = db.getProductsDB();
+        const matches = allProducts.filter(p => 
+            p.name.toLowerCase().includes(query) || 
+            p.barcode.includes(query)
+        ).slice(0, 6); // Limite razonable
+
+        if (matches.length > 0) {
+            manualSuggestions.innerHTML = matches.map(match => `
+                <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" style="cursor: pointer;" data-barcode="${match.barcode}">
+                    <div>
+                        <div class="fw-bold">${match.name}</div>
+                        <small class="text-muted"><i class="bi bi-upc"></i> ${match.barcode}</small>
+                    </div>
+                    <span class="badge bg-success rounded-pill">${match.price.toFixed(2)}€</span>
+                </li>
+            `).join('');
+            manualSuggestions.classList.remove('d-none');
+        } else {
+            manualSuggestions.innerHTML = `
+                <li class="list-group-item text-muted text-center" style="pointer-events: none;">
+                    <i class="bi bi-box-seam"></i> Producto no catalogado
+                </li>
+            `;
+            manualSuggestions.classList.remove('d-none');
+        }
+    });
+
+    // Delegación de clic sobre un elemento dropeado
+    manualSuggestions.addEventListener('click', (e) => {
+        const li = e.target.closest('li[data-barcode]');
+        if (li) {
+            const barcodeSelected = li.dataset.barcode;
+            handleBarcodeScanned(barcodeSelected); // Simula escaneo!
+            manualBarcode.value = '';
+            manualSuggestions.classList.add('d-none');
+        }
+    });
+
+    // Auto-plegado al clickear fuera (UX)
+    document.addEventListener('click', (e) => {
+        if (!manualBarcode.contains(e.target) && !manualSuggestions.contains(e.target)) {
+            manualSuggestions.classList.add('d-none');
         }
     });
 }

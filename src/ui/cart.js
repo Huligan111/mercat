@@ -32,7 +32,7 @@ export const initCartUI = () => {
         btnSetBudget.addEventListener('click', () => {
             Swal.fire({
                 title: 'Presupuesto Máximo',
-                text: '¿Cuánto quieres gastar como máximo en esta compra? (El total pitará si te pasas. Usa 0 para desactivar)',
+                text: '¿Cuánto quieres gastar como máximo en esta compra?',
                 input: 'number',
                 inputAttributes: { min: 0, step: 1 },
                 inputValue: db.getBudget() || '',
