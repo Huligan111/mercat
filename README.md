@@ -7,11 +7,14 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 *   **📷 Escáner de Códigos de Barras Intencional**: Lector integrado súper rápido. Pausa automática al detectar productos para que no se vuelva loco leyendo el mismo producto.
 *   **📲 Instalación Nativa (PWA)**: Descargable e instalable en la pantalla de inicio de dispositivos iOS/Android. Soporte 100% **Offline** (tu catálogo y la cámara seguirán funcionando en modo avión) y sistema *autoUpdate* silencioso.
 *   **🥩 Escáner Avanzado de Frescos (GS1 Digital Link)**: Inteligencia inyectada para decodificar al vuelo URLs densas de códigos QR de supermercados (ej: etiquetas Mercadona). Extrae el GTIN puro, aísla el peso variable y sobreescribe dinámicamente tu importe exacto de caja.
-*   **💾 Inventario Local-First**: Todo lo que escaneas se guarda de por vida en la memoria de tu móvil (LocalStorage) sin bases de datos ajenas.
+*   **📷 Escáner de Tiquets Inteligente (Smart Scan)**: Sistema de recorte manual con `Cropper.js`. Encuadra tus tiquets físicos para que se vean limpios, rectos y sin fondos, simulando un escáner de documentos profesional.
+*   **📈 Historial Visual & Análisis**: Guarda fotos de tus tiquets reales vinculadas a tus compras. Visualización premium con **Zoom Dinámico** (`panzoom`) y gestos táctiles para no perderte ni un detalle del tiquet original.
+*   **💾 Almacenamiento Híbrido Avanzado**: Uso de `LocalStorage` para el catálogo rápido e **`IndexedDB`** para gestionar datos pesados (imágenes base64 comprimidas), garantizando que tu App nunca se ralentice.
 *   **📝 Bloc de Notas Predictivo (Shopping List)**: Crea tu lista de compra antes de salir de casa. El autocompletado localizará tus productos del Catálogo, ¡y según vayas pasándolos por la cámara se **tacharán automáticamente** de la lista!
 *   **🚨 Cúpula de Presupuesto**: Márcate un tope de gasto al entrar al súper. La contabilidad pulsará en un rojo agresivo cuando traspases la barrera para proteger tus ahorros.
 *   **🔎 Búsqueda Instantánea**: Busca milisegundos entre tus productos guardados por código o nombre gracias al buscador dinámico *en vivo*.
 *   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una AppStore final.
+*   **🤳 Captura Flexible**: ¿Se te olvidó hacer la foto al pagar? No hay problema. Puedes adjuntar la imagen de tu tiquet más tarde directamente desde el historial de gastos.
 *   **🎨 Alertas Animadas Premium**: Integración de notificaciones sutiles con SweetAlert2.
 *   **✏️ Gestión CRUD Total**: Edita nombres, altera precios si han subido/bajado o borra elementos del catálogo con un clic.
 *   **📦 Backups Transparentes**: Sistema de Exportación e Importación inteligente. Descarga todo tu catálogo en formato abierto (`JSON`) y compártelo o fusiónalo con listas de otros familiares sin necesitar de bases de datos de terceros.
@@ -23,6 +26,9 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 *   **[Bootstrap 5](https://getbootstrap.com/)** - Instalado nativamente e importado vía Node para garantizar rendimiento incluso sin internet. Icons y modales incluidos.
 *   **[html5-qrcode](https://github.com/mebjas/html5-qrcode)** - Librería para el escáner de códigos usando la cámara del dispositivo móvil.
 *   **[SweetAlert2](https://sweetalert2.github.io/)** - Alertas y cuadros de diálogo animados premium.
+*   **[Cropper.js](https://fengyuanchen.github.io/cropperjs/)** - Motor de recorte y encuadre de tiquets para el sistema de escaneado.
+*   **[Panzoom](https://github.com/anvaka/panzoom)** - Librería de control de gestos para habilitar zoom y paneo en fotos de tiquets.
+*   **IndexedDB** - Motor de base de datos asíncrona en el navegador para almacenamiento ilimitado de imágenes locales.
 *   **vite-plugin-pwa** - Inyección de Service Workers y Manifiestos para habilitar las características nativas y offline.
 
 ## 🚀 Instalación y Despliegue Local

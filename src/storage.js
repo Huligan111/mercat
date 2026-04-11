@@ -13,6 +13,24 @@ const RECEIPTS_KEY = 'mercat_receipts_history';
 const BUDGET_KEY = 'mercat_budget';
 const SHOPPING_LIST_KEY = 'mercat_shopping_list';
 
+// --- CONFIGURACIÓN INDEXEDDB (Para almacenamiento pesado de fotos) ---
+const IDB_NAME = 'MercatDB';
+const IDB_STORE = 'receipts';
+
+const openDB = () => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(IDB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+                db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+    });
+};
+
 /**
  * Función genérica de flecha para obtener datos de LocalStorage.
  * @param {string} key - La clave donde están guardados los datos.
@@ -233,38 +251,105 @@ export const clearCart = () => setStorage(CART_KEY, []);
 // ==========================================
 
 /**
- * Obtiene el historial completo de compras guardadas.
- * @returns {Array} Array con todos los tickets históricos.
+ * Migra los tickets del antiguo LocalStorage al nuevo IndexedDB.
+ * Se ejecuta una sola vez al cargar la App.
  */
-export const getReceipts = () => getStorage(RECEIPTS_KEY, []);
+export const migrateReceiptsToIDB = async () => {
+    const oldReceipts = getStorage(RECEIPTS_KEY, null);
+    if (oldReceipts && Array.isArray(oldReceipts)) {
+        console.log("Migrando tickets a IndexedDB...");
+        for (const r of oldReceipts) {
+            await saveReceipt(r.total, r.items, null, r.id, r.date);
+        }
+        localStorage.removeItem(RECEIPTS_KEY); // Limpiamos rastro
+        console.log("Migración completada.");
+    }
+};
+
+/**
+ * Obtiene el historial completo de compras guardadas (Desde IndexedDB).
+ * @returns {Promise<Array>} Array con todos los tickets históricos.
+ */
+export const getReceipts = async () => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(IDB_STORE, 'readonly');
+        const store = transaction.objectStore(IDB_STORE);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+};
 
 /**
  * Guarda un ticket en memoria tras finalizar compra.
  * @param {number} totalAmount - Total de la compra en euros
  * @param {Array} items - Los elementos comprados
+ * @param {string|null} image - Foto del tiquet en Base64 (opcional)
  */
-export const saveReceipt = (totalAmount, items) => {
-    const receipts = getReceipts();
+export const saveReceipt = async (totalAmount, items, image = null, forceId = null, forceDate = null) => {
+    const db = await openDB();
     const newReceipt = {
-        id: Date.now(),
-        date: new Date().toISOString(),
+        id: forceId || Date.now(),
+        date: forceDate || new Date().toISOString(),
         total: totalAmount,
         itemsCount: items.length,
-        items: items // Almacenamos el array completo de productos en el ticket para poder desglosarlos visualmente después
+        items: items,
+        image: image // ¡Aquí guardamos la foto comprimida!
     };
-    receipts.push(newReceipt);
-    setStorage(RECEIPTS_KEY, receipts);
+
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(IDB_STORE, 'readwrite');
+        const store = transaction.objectStore(IDB_STORE);
+        const request = store.put(newReceipt);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+};
+
+/**
+ * Actualiza la imagen de un ticket ya existente.
+ * @param {number} ticketId - ID primordial del ticket
+ * @param {string} imageBase64 - Nueva imagen comprimida
+ */
+export const updateReceiptImage = async (ticketId, imageBase64) => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(IDB_STORE, 'readwrite');
+        const store = transaction.objectStore(IDB_STORE);
+        
+        // Buscamos el original
+        const getRequest = store.get(ticketId);
+        
+        getRequest.onsuccess = () => {
+            const ticket = getRequest.result;
+            if (ticket) {
+                // Inyectamos la foto y sobreescribimos
+                ticket.image = imageBase64;
+                const putRequest = store.put(ticket);
+                putRequest.onsuccess = () => resolve();
+                putRequest.onerror = () => reject(putRequest.error);
+            } else {
+                reject(new Error("Ticket no localizado"));
+            }
+        };
+        getRequest.onerror = () => reject(getRequest.error);
+    });
 };
 
 /**
  * Elimina definitivamente un ticket del Historial de Compras.
  * @param {number} ticketId - El Timestamp o ID exacto del ticket a exterminar 
  */
-export const deleteReceipt = (ticketId) => {
-    let receipts = getReceipts();
-    // Filtramos machacando array omitiendo el ticket borrado
-    receipts = receipts.filter(r => r.id !== ticketId);
-    setStorage(RECEIPTS_KEY, receipts);
+export const deleteReceipt = async (ticketId) => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(IDB_STORE, 'readwrite');
+        const store = transaction.objectStore(IDB_STORE);
+        const request = store.delete(ticketId);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
 };
 
 // ==========================================

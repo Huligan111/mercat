@@ -7,6 +7,8 @@
 import * as db from '../storage.js';
 import Swal from 'sweetalert2';
 import { syncAutoStrikethrough } from './shoppingList.js';
+import { compressImage } from '../utils/imageProcessor.js';
+import { startCropping } from './cropperUI.js';
 
 // Referencias al DOM (Almacenadas a nivel de módulo por rendimiento)
 let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart, btnCheckout;
@@ -129,10 +131,60 @@ export const initCartUI = () => {
                 confirmButtonText: pendingItems.length > 0 ? 'Ignorar y Pagar' : 'Finalizar y Pagar',
                 cancelButtonText: 'Cancelar',
                 backdrop: `rgba(0,0,0,0.7)` 
-            }).then((result) => {
+            }).then(async (result) => {
                 if(result.isConfirmed) {
-                    // Guardamos el recibo (Ticket) mandándole la Inyección al Storage
-                    db.saveReceipt(currentCartTotal, cart);
+                    
+                    // PASO OPCIONAL: ¿Quieres hacer foto al tiquet real?
+                    const photoResult = await Swal.fire({
+                        title: '📸 Prueba Visual',
+                        text: '¿Quieres añadir una foto del tiquet físico para el historial?',
+                        icon: 'camera',
+                        showCancelButton: true,
+                        confirmButtonText: 'Hacer Foto',
+                        cancelButtonText: 'Omitir'
+                    });
+
+                    let ticketImageBase64 = null;
+
+                    if (photoResult.isConfirmed) {
+                        // Disparamos el input oculto de la cámara
+                        const cameraInput = document.getElementById('ticket-camera-input');
+                        if (cameraInput) {
+                            cameraInput.click();
+                            
+                            // Esperamos a que el usuario termine con la cámara nativa
+                            const fileCapturePromise = new Promise((resolve) => {
+                                cameraInput.onchange = async (e) => {
+                                    const file = e.target.files[0];
+                                    if(file) {
+                                        // 1. Convertimos a base64 crudo para el cropper
+                                        const reader = new FileReader();
+                                        reader.readAsDataURL(file);
+                                        reader.onload = async (event) => {
+                                            const rawBase64 = event.target.result;
+                                            
+                                            // 2. Abrimos el sistema de escaneo (Recorte manual)
+                                            const croppedBase64 = await startCropping(rawBase64);
+                                            
+                                            if(croppedBase64) {
+                                                // 3. El resultado ya está optimizado por el cropper, pero podemos pasarlo por compress si queremos forzar más ligereza
+                                                resolve(croppedBase64);
+                                            } else {
+                                                resolve(null);
+                                            }
+                                        };
+                                    } else {
+                                        resolve(null);
+                                    }
+                                };
+                            });
+
+                            ticketImageBase64 = await fileCapturePromise;
+                        }
+                    }
+
+                    // Guardamos el recibo (Ticket) mandándole la Inyección al Storage (Ahora ASÍNCRONO)
+                    await db.saveReceipt(currentCartTotal, cart, ticketImageBase64);
                     
                     // Limpiamos Carro permanentemente
                     db.clearCart();
@@ -146,8 +198,8 @@ export const initCartUI = () => {
                               showCancelButton: true,
                               confirmButtonText: 'Sí, limpiar Bloc',
                               cancelButtonText: 'Mantener Bloc'
-                         }).then(r => {
-                              if(r.isConfirmed) db.setShoppingList([]); // Limpiamos tabla
+                         }).then(async r => {
+                              if(r.isConfirmed) await db.setShoppingList([]); // Limpiamos tabla
                               renderCart();
                          });
                     } else {

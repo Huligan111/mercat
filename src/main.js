@@ -3,6 +3,7 @@
  * Une la UI con el Escáner y la Lógica del Carrito.
  */
 import './style.css'; 
+import 'cropperjs/dist/cropper.css';
 import * as db from './storage.js';
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import Swal from 'sweetalert2';
@@ -13,6 +14,7 @@ import { initInventoryUI } from './ui/inventory.js';
 import { initProductModalUI, setupModalForNew, openProductModalForEdit } from './ui/productModal.js';
 import { initHistoryUI } from './ui/history.js';
 import { initShoppingListUI } from './ui/shoppingList.js';
+import { initCropperUI } from './ui/cropperUI.js';
 
 // Elementos de la entrada manual
 const manualForm = document.getElementById('manual-form');
@@ -219,13 +221,17 @@ if (manualBarcode && manualSuggestions) {
 }
 
 // ARRANQUE (BOOTSTRAPPING DE LA APP)
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     try {
+        // 1. Migración de datos pesados (LocalStorage -> IndexedDB)
+        await db.migrateReceiptsToIDB();
+
         initCartUI();
         initInventoryUI(openProductModalForEdit, setupModalForNew);    // Inyectamos dependencias cruzadas (Editar y Añadir)
         initProductModalUI(resumeScanner);           // Inyectamos función para despertar escáner
         initHistoryUI();                             // Registramos el Módulo del Historial (Chart.js y Modal)
         initShoppingListUI();                        // Registramos el Bloc de Notas Predictivo
+        initCropperUI();                             // Registramos el Escáner de Tiquets (Recorte)
 
         renderCart(); 
         initCameraScanner(); 

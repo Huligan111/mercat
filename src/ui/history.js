@@ -2,12 +2,17 @@ import * as db from '../storage.js';
 import * as bootstrap from 'bootstrap';
 import Chart from 'chart.js/auto';
 import Swal from 'sweetalert2';
+import panzoom from 'panzoom';
+import { compressImage } from '../utils/imageProcessor.js';
+import { startCropping } from './cropperUI.js';
 
 /**
  * Punteros DOM para el Módulo de Historial
  */
 let historyModalElement, btnHistory, chartModeSelect, canvasElement, receiptsList, emptyMsg;
 let historyModal = null;
+let viewTicketModal = null; // Nuevo modal visor de imagen
+let panzoomInstance = null; // Instancia de zoom para el tiquet
 let expenseChart = null; // Guardará la instancia viva del gráfico en memoria local
 
 /**
@@ -41,8 +46,10 @@ export const initHistoryUI = () => {
     // Delegación de eventos para el botón 'Borrar Ticket' (Papelera)
     // Permite que la papelera funcione incluso si los tickets se han generado "al vuelo" dinámicamente en el DOM.
     if (receiptsList) {
-        receiptsList.addEventListener('click', (e) => {
+        receiptsList.addEventListener('click', async (e) => {
             const deleteBtn = e.target.closest('.btn-delete-ticket');
+            const viewPhotoBtn = e.target.closest('.btn-view-photo');
+            const addPhotoBtn = e.target.closest('.btn-add-photo');
             
             if(deleteBtn) {
                 e.stopPropagation(); // Vital: Evitamos que Bootstrap expanda el Acordeón visualmente al pinchar en la basura
@@ -58,12 +65,110 @@ export const initHistoryUI = () => {
                     confirmButtonColor: '#dc3545',
                     confirmButtonText: 'Sí, borrar',
                     cancelButtonText: 'Cancelar'
-                }).then((res) => {
+                }).then(async (res) => {
                     if(res.isConfirmed) {
-                        db.deleteReceipt(ticketId);
+                        await db.deleteReceipt(ticketId);
                         renderHistory(); // Refrescar UI (Desaparecerá el bloque y bajará el gráfico)
                     }
                 });
+            }
+
+            if (viewPhotoBtn) {
+                e.stopPropagation();
+                const photoData = viewPhotoBtn.getAttribute('data-img');
+                if (photoData) {
+                    const viewerImg = document.getElementById('ticket-viewer-img');
+                    const viewModalEl = document.getElementById('viewTicketModal');
+                    if (viewerImg && viewModalEl) {
+                        // Limpiamos zoom previo si existiera para que no se herede posición rara
+                        if(panzoomInstance) {
+                            panzoomInstance.dispose();
+                            panzoomInstance = null;
+                        }
+
+                        viewerImg.src = photoData;
+                        
+                        if(!viewTicketModal) {
+                            viewTicketModal = new bootstrap.Modal(viewModalEl);
+                            
+                            // Evento de limpieza al cerrar el modal (Reset completo)
+                            viewModalEl.addEventListener('hidden.bs.modal', () => {
+                                if(panzoomInstance) {
+                                    panzoomInstance.dispose();
+                                    panzoomInstance = null;
+                                }
+                            });
+
+                            // Mejora de UX: Cerrar al hacer clic en la imagen (solo si no estamos haciendo zoom)
+                            viewerImg.addEventListener('click', () => {
+                                if (panzoomInstance) {
+                                    const transform = panzoomInstance.getTransform();
+                                    // Si el zoom es de 1 (original), permitimos cerrar al tocar
+                                    if (Math.abs(transform.scale - 1) < 0.01) {
+                                        viewTicketModal.hide();
+                                    }
+                                } else {
+                                    viewTicketModal.hide();
+                                }
+                            });
+                        }
+
+                        viewTicketModal.show();
+
+                        // Inicializamos PANZOOM tras la animación de apertura para que el cálculo de dimensiones sea correcto
+                        setTimeout(() => {
+                            panzoomInstance = panzoom(viewerImg, {
+                                maxZoom: 5,
+                                minZoom: 1,
+                                bounds: true,
+                                boundsPadding: 0.1
+                            });
+                        }, 500);
+                    }
+                }
+            }
+            if (addPhotoBtn) {
+                e.stopPropagation();
+                const ticketId = parseInt(addPhotoBtn.getAttribute('data-id'), 10);
+                const cameraInput = document.getElementById('ticket-camera-input');
+                
+                if (cameraInput) {
+                    cameraInput.click();
+                    
+                    // Listener de un solo uso para capturar esta foto específica
+                    cameraInput.onchange = async (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            try {
+                                // 1. Leer imagen cruda
+                                const reader = new FileReader();
+                                reader.readAsDataURL(file);
+                                reader.onload = async (e) => {
+                                    const rawBase64 = e.target.result;
+                                    
+                                    // 2. Abrir editor de recorte
+                                    const croppedBase64 = await startCropping(rawBase64);
+                                    
+                                    if(croppedBase64) {
+                                        // 3. Guardar en DB
+                                        await db.updateReceiptImage(ticketId, croppedBase64);
+                                        renderHistory();
+                                        Swal.fire({
+                                            title: '¡Escanéo Éxitoso!',
+                                            text: 'Se ha cuadrado el tiquet perfectamente.',
+                                            icon: 'success',
+                                            timer: 1500,
+                                            showConfirmButton: false
+                                        });
+                                    }
+                                };
+                            } catch (error) {
+                                Swal.fire('Error', 'No se pudo procesar el escaneo.', 'error');
+                            }
+                        }
+                        cameraInput.value = ''; // Limpiar para permitir re-selección
+                    };
+                }
             }
         });
     }
@@ -73,8 +178,8 @@ export const initHistoryUI = () => {
  * Genera de forma visual toda la lista HTML cruzándola con el Local Storage.
  * Agrega el contenido del Acordeón para detallar ítems del ticket.
  */
-export const renderHistory = () => {
-    const receipts = db.getReceipts();
+export const renderHistory = async () => {
+    const receipts = await db.getReceipts();
     
     if(receipts.length === 0) {
         emptyMsg.classList.remove('d-none');
@@ -133,9 +238,20 @@ export const renderHistory = () => {
                     <small class="text-muted"><i class="bi bi-calendar"></i> ${dateStr}</small><br>
                     <small class="text-primary mt-1 d-inline-block" style="text-decoration: underline dotted;"><i class="bi bi-eye"></i> Ver ${r.itemsCount} productos</small>
                 </div>
-                <!-- Área Cajas: Precio + Papelera -->
+                <!-- Área Cajas: Precio + Foto? + Papelera -->
                 <div class="d-flex align-items-center">
-                    <span class="badge bg-success rounded-pill fs-6 shadow-sm me-3">${r.total.toFixed(2)} €</span>
+                    <span class="badge bg-success rounded-pill fs-6 shadow-sm me-2">${r.total.toFixed(2)} €</span>
+                    
+                    ${r.image ? `
+                    <button class="btn btn-sm btn-outline-primary btn-view-photo shadow-sm me-2" data-img="${r.image}" title="Ver Foto del Tiquet">
+                        <i class="bi bi-image"></i>
+                    </button>
+                    ` : `
+                    <button class="btn btn-sm btn-outline-secondary btn-add-photo shadow-sm me-2" data-id="${r.id}" title="Añadir Foto">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                    `}
+
                     <button class="btn btn-sm btn-outline-danger btn-delete-ticket shadow-sm" data-id="${r.id}" title="Eliminar Ticket">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -158,8 +274,8 @@ export const renderHistory = () => {
  * Destruye la previa en memoria si la hay para evitar el famoso bug de WebGL.
  * @param {string} mode - 'meses' o 'dias' para alternar filtrado de cálculos
  */
-const renderChart = (mode) => {
-    const receipts = db.getReceipts();
+const renderChart = async (mode) => {
+    const receipts = await db.getReceipts();
     if(receipts.length === 0) return;
 
     let labels = [];

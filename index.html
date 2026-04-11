@@ -259,6 +259,57 @@
     </div>
   </div>
 
+  <div class="modal fade" id="viewTicketModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-transparent border-0">
+        <div class="modal-body p-0 text-center position-relative" style="cursor: zoom-out;">
+          <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 shadow" data-bs-dismiss="modal" aria-label="Close"></button>
+          <img id="ticket-viewer-img" src="" class="img-fluid rounded shadow-lg" style="max-height: 80vh;">
+        </div>
+        <div class="modal-footer border-0 justify-content-center bg-transparent">
+            <button type="button" class="btn btn-lg rounded-pill px-5 shadow-lg fw-bold text-white border-0" 
+                    data-bs-dismiss="modal"
+                    style="background: linear-gradient(45deg, #f44336, #ff9800); letter-spacing: 0.5px;">
+                <i class="bi bi-x-circle-fill me-2"></i> Cerrar Visor
+            </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Oculto para disparar la CÁMARA del móvil -->
+  <input type="file" id="ticket-camera-input" accept="image/*" capture="environment" style="display: none;">
+
+  <!-- Novedad: Modal para RECORTAR EL TIQUET (Escáner) -->
+  <div class="modal fade" id="cropTicketModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-dark text-white border-bottom-0 rounded-top-4">
+          <h5 class="modal-title"><i class="bi bi-crop"></i> Encuadrar Tiquet</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0 bg-secondary" style="height: 60vh; overflow: hidden;">
+            <!-- Contenedor donde Cropper.js hará su magia -->
+            <img id="cropper-target-img" src="" style="max-width: 100%; display: block;">
+        </div>
+        <div class="modal-footer justify-content-between bg-white rounded-bottom-4">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <div class="btn-group">
+              <button type="button" class="btn btn-outline-dark" id="btn-crop-rotate-left" title="Rotar Izquierda">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+              <button type="button" class="btn btn-outline-dark" id="btn-crop-rotate-right" title="Rotar Derecha">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+          </div>
+          <button type="button" class="btn btn-success fw-bold px-4 shadow-sm" id="btn-crop-confirm">
+            <i class="bi bi-check-all"></i> Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Novedad: Modal Bootstrap de LISTA DE LA COMPRA INTELIGENTE -->
   <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-labelledby="shoppingListModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
