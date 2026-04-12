@@ -31,6 +31,9 @@
         <button class="btn btn-outline-light btn-sm fw-bold shadow-sm" id="btn-inventory" type="button">
           <i class="bi bi-boxes"></i> Inventario
         </button>
+        <button class="btn btn-outline-light btn-sm fw-bold ms-1 shadow-sm" id="btn-help" type="button" title="Ayuda">
+          <i class="bi bi-question-circle"></i>
+        </button>
       </div>
     </div>
   </nav>
@@ -312,7 +315,7 @@
 
   <!-- Novedad: Modal Bootstrap de LISTA DE LA COMPRA INTELIGENTE -->
   <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-labelledby="shoppingListModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-scrollable mt-2">
       <div class="modal-content border-0 shadow-lg rounded-4">
         <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
           <h1 class="modal-title fs-5" id="shoppingListModalLabel"><i class="bi bi-card-checklist"></i> Mi Bloc de Notas</h1>
@@ -360,6 +363,167 @@
   <audio id="beep-sound" src="https://www.soundjay.com/buttons/sounds/beep-07a.mp3" preload="auto"></audio>
 
   <!-- Archivo principal donde uniremos todos los módulos Vite -->
+  <!-- Modal: CENTRO DE AYUDA (Manual del Usuario) -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
+          <h5 class="modal-title" id="helpModalLabel"><i class="bi bi-info-circle-fill"></i> Centro de Ayuda & Guía de Uso</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="accordion accordion-flush" id="helpAccordion">
+            
+            <!-- Sección 1: Escaneo -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#help-scan">
+                  <i class="bi bi-upc-scan me-2 text-primary"></i> <strong>Escaneo de Productos</strong>
+                </button>
+              </h2>
+              <div id="help-scan" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Apunta con la cámara al código de barras. La App lo detectará automáticamente.</p>
+                  <ul>
+                    <li><strong>EAN (Barras):</strong> Códigos estándar de productos envasados.</li>
+                    <li><strong>Pausa Inteligente:</strong> El escáner se pausa 2 segundos tras cada lectura para que no dupliques artículos sin querer.</li>
+                  </ul>
+                  <div class="alert alert-info py-2 small"><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si el código no lee bien, prueba a alejar un poco el móvil para que enfoque mejor.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: PRODUCTOS FRESCOS (NUEVA) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-fresh">
+                  <i class="bi bi-qr-code-scan me-2 text-success"></i> <strong>Carnicería y Frescos (QR)</strong>
+                </button>
+              </h2>
+              <div id="help-fresh" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>¿Has comprado carne o fruta al peso? Estas etiquetas suelen llevar un código <strong>QR (GS1 Digital Link)</strong>.</p>
+                  <ul>
+                    <li><strong>Detección automática:</strong> La App lee el peso exacto (kg) y el precio total de la etiqueta.</li>
+                    <li>No importa el precio que tengas en tu catálogo; en frescos, siempre prevalece el de la etiqueta del día.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 2: Lista Inteligente -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-list">
+                  <i class="bi bi-card-checklist me-2 text-primary"></i> <strong>Mi Bloc de Notas</strong>
+                </button>
+              </h2>
+              <div id="help-list" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Crea tu lista de la compra desde casa usando el buscador predictivo.</p>
+                  <p><strong>Truco del Súper:</strong> Al escanear un producto que tenías apuntado, la App lo reconocerá y lo <strong>tachará automáticamente</strong> de tu lista de notas. ¡Así sabrás qué te falta por encontrar!</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: HISTORIAL (AMPLIADA) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-history">
+                  <i class="bi bi-graph-up me-2 text-info"></i> <strong>Historial de Gastos</strong>
+                </button>
+              </h2>
+              <div id="help-history" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Consulta tus compras pasadas y analiza cuánto dinero gastas al mes.</p>
+                  <ul>
+                    <li><strong>Gráfica Interactiva:</strong> Toca cualquier columna de la gráfica para ver el gasto total de ese día o mes. Los importes también se ven escritos arriba para mayor facilidad.</li>
+                    <li><strong>Detalle de Ticket:</strong> Pulsa sobre la fecha de un ticket para desplegar la lista de productos que compraste en esa ocasión.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 4: Digitalizar Tiquets -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-receipts">
+                  <i class="bi bi-crop me-2 text-warning"></i> <strong>Digitalizar Tiquets Reales</strong>
+                </button>
+              </h2>
+              <div id="help-receipts" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Guarda una copia visual de tu tiquet físico para evitar que se borre la tinta térmica.</p>
+                  <p>Tras la compra, captura el tiquet y usa el <strong>Escáner Manual</strong> (las esquinas azules) para recortar solo el papel. La foto se guardará optimizada en el historial.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: INVENTARIO (NUEVA) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-inventory">
+                  <i class="bi bi-pencil-square me-2 text-dark"></i> <strong>Editar Inventario</strong>
+                </button>
+              </h2>
+              <div id="help-inventory" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Si un producto ha cambiado de nombre o precio, puedes gestionarlo desde el botón <strong>Inventario</strong>.</p>
+                  <ul>
+                    <li>Busca el producto por su nombre o código.</li>
+                    <li>Pulsa el icono de editar (`bi-pencil`) para actualizar sus datos de forma permanente.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: INSTALACIÓN PWA (NUEVA) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-install">
+                  <i class="bi bi-phone me-2 text-primary"></i> <strong>Instalar como App Nativa</strong>
+                </button>
+              </h2>
+              <div id="help-install" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Puedes usar Mercat App sin abrir el navegador:</p>
+                  <ul>
+                    <li><strong>Android (Chrome):</strong> Pulsa los 3 puntos y selecciona "Instalar aplicación".</li>
+                    <li><strong>iOS (Safari):</strong> Pulsa el botón "Compartir" y selecciona "Añadir a pantalla de inicio".</li>
+                  </ul>
+                  <p>Funcionará a pantalla completa y mucho más rápido.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: SEGURIDAD (AMPLIADA) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-data">
+                  <i class="bi bi-shield-check me-2 text-secondary"></i> <strong>Tus Datos y Privacidad</strong>
+                </button>
+              </h2>
+              <div id="help-data" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Mercat App funciona bajo la filosofía <strong>Local-First</strong>:</p>
+                  <ul>
+                    <li>No guardamos nada en servidores; todo está en la memoria de tu teléfono.</li>
+                    <li>Si borras un ticket, se elimina su foto automáticamente para no ocupar espacio innecesario.</li>
+                    <li>Si borras el historial de Chrome en profundidad, podrías perder los datos. ¡Usa el botón de <strong>Exportar</strong> del Inventario como copia de seguridad!</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 justify-content-center pb-4">
+          <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-dismiss="modal">¡Entendido!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 

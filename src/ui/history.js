@@ -1,6 +1,7 @@
 import * as db from '../storage.js';
 import * as bootstrap from 'bootstrap';
 import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import Swal from 'sweetalert2';
 import panzoom from 'panzoom';
 import { compressImage } from '../utils/imageProcessor.js';
@@ -319,6 +320,9 @@ const renderChart = async (mode) => {
         expenseChart.destroy();
     }
 
+    // Registramos el plugin de etiquetas para esta instancia
+    Chart.register(ChartDataLabels);
+
     expenseChart = new Chart(canvasElement, {
         type: 'bar',
         data: {
@@ -335,9 +339,16 @@ const renderChart = async (mode) => {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            // MEJORA INTERACCIÓN: Modo índice para que baste con tocar la columna, no la barra exacta
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
             scales: {
                 y: {
                     beginAtZero: true,
+                    // Añadimos margen arriba para que las etiquetas no se corten
+                    grace: '15%',
                     ticks: {
                         callback: function(value) {
                             return value + '€';
@@ -346,7 +357,29 @@ const renderChart = async (mode) => {
                 }
             },
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: function(value) {
+                        return value > 0 ? value.toFixed(2) + '€' : '';
+                    },
+                    font: {
+                        weight: 'bold',
+                        size: 10
+                    },
+                    color: '#198754', // Color verde para que haga juego
+                    clip: false // Permite que se vea fuera del canvas si es necesario
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            return ' Total: ' + context.parsed.y.toFixed(2) + ' €';
+                        }
+                    }
+                }
             }
         }
     });

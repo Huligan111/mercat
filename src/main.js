@@ -15,6 +15,7 @@ import { initProductModalUI, setupModalForNew, openProductModalForEdit } from '.
 import { initHistoryUI } from './ui/history.js';
 import { initShoppingListUI } from './ui/shoppingList.js';
 import { initCropperUI } from './ui/cropperUI.js';
+import { initHelpUI } from './ui/helpUI.js';
 
 // Elementos de la entrada manual
 const manualForm = document.getElementById('manual-form');
@@ -143,6 +144,34 @@ const initCameraScanner = () => {
         };
 
         html5QrcodeScanner.render(onScanSuccess, () => {});
+
+        // --- TRADUCTOR DINÁMICO DE LA LIBRERÍA (UX Premium en Español) ---
+        const translateScannerUI = () => {
+            const translations = {
+                "Request Camera Permissions": "Solicitar Permisos de Cámara",
+                "Scan an Image File": "Escanear Archivo de Imagen",
+                "Scan using camera directly": "Usar cámara directamente",
+                "Stop Scanning": "Detener Escaneo",
+                "Start Scanning": "Iniciar Escaneo",
+                "Select Camera": "Seleccionar Cámara",
+            };
+
+            const elements = document.querySelectorAll('#reader button, #reader a, #reader span, #reader label');
+            elements.forEach(el => {
+                const text = el.innerText.trim();
+                if (translations[text]) {
+                    el.innerText = translations[text];
+                }
+            });
+        };
+
+        // Observamos cambios en el lector para traducir botones que aparecen/desaparecen
+        const observer = new MutationObserver(translateScannerUI);
+        observer.observe(document.getElementById('reader'), { childList: true, subtree: true });
+        
+        // Ejecución inicial por si ya estuviera pintado
+        setTimeout(translateScannerUI, 100);
+
     } catch (error) {
         alert("Error inicializando la cámara: " + error.message);
     }
@@ -232,6 +261,7 @@ window.addEventListener('load', async () => {
         initHistoryUI();                             // Registramos el Módulo del Historial (Chart.js y Modal)
         initShoppingListUI();                        // Registramos el Bloc de Notas Predictivo
         initCropperUI();                             // Registramos el Escáner de Tiquets (Recorte)
+        initHelpUI();                                // Registramos el Centro de Ayuda Visual
 
         renderCart(); 
         initCameraScanner(); 
