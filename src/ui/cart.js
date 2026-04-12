@@ -114,9 +114,10 @@ export const initCartUI = () => {
             let warningHtml = '';
             if (pendingItems.length > 0) {
                  const names = pendingItems.map(i => `<li>${i.name}</li>`).join('');
-                 warningHtml = `<div class="alert alert-danger text-start mt-3 border-0 shadow-sm" style="font-size: 0.9rem;">
-                                   <strong><i class="bi bi-exclamation-triangle"></i> ¡ATENCIÓN!</strong> Tienes apuntes sin tachar:
-                                   <ul class="mb-0 mt-1 pl-3">${names}</ul>
+                 warningHtml = `<div class="alert alert-danger text-start mt-3 border-0 shadow-sm py-3" style="font-size: 1.05rem;">
+                                   <strong class="d-block mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ¡ATENCIÓN!</strong> 
+                                   Tienes <strong>${pendingItems.length}</strong> apuntes sin tachar:
+                                   <ul class="mb-0 mt-2 pl-3 fw-bold">${names}</ul>
                                 </div>`;
             }
 
