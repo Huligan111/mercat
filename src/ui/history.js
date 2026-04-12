@@ -20,6 +20,10 @@ let expenseChart = null; // Guardará la instancia viva del gráfico en memoria 
  * Inicializa los eventos y enlaza los elementos UI para el Historial de Compras.
  * Esta función es orquestada desde main.js al cargar la primera vez la PWA.
  */
+/**
+ * Inicializa los eventos y enlaza los elementos UI para el Historial de Compras.
+ * Configura la delegación de eventos para borrar tickets, ver fotos con zoom y añadir fotos nuevas.
+ */
 export const initHistoryUI = () => {
     historyModalElement = document.getElementById('historyModal');
     btnHistory = document.getElementById('btn-history');
@@ -28,7 +32,7 @@ export const initHistoryUI = () => {
     receiptsList = document.getElementById('receipts-list');
     emptyMsg = document.getElementById('empty-history-msg');
 
-    // Apertura del Panel
+    // Apertura del Panel de Historial
     if (btnHistory) {
         btnHistory.addEventListener('click', () => {
             if(!historyModal) historyModal = new bootstrap.Modal(historyModalElement);
@@ -37,28 +41,26 @@ export const initHistoryUI = () => {
         });
     }
 
-    // Toggle de la Gráfica (Mensual/Diario)
+    // Cambio entre vista mensual y diaria de la gráfica
     if (chartModeSelect) {
         chartModeSelect.addEventListener('change', () => {
-            renderChart(chartModeSelect.value); // Repintar gráfica al cambiar la opción
+            renderChart(chartModeSelect.value);
         });
     }
 
-    // Delegación de eventos para el botón 'Borrar Ticket' (Papelera)
-    // Permite que la papelera funcione incluso si los tickets se han generado "al vuelo" dinámicamente en el DOM.
+    // Delegación de eventos para interacción con tickets individuales (Borrar, Ver Foto, Añadir Foto)
     if (receiptsList) {
         receiptsList.addEventListener('click', async (e) => {
             const deleteBtn = e.target.closest('.btn-delete-ticket');
             const viewPhotoBtn = e.target.closest('.btn-view-photo');
             const addPhotoBtn = e.target.closest('.btn-add-photo');
             
+            // Lógica de borrado de ticket
             if(deleteBtn) {
-                e.stopPropagation(); // Vital: Evitamos que Bootstrap expanda el Acordeón visualmente al pinchar en la basura
-
+                e.stopPropagation();
                 const ticketId = parseInt(deleteBtn.getAttribute('data-id'), 10);
                 
-                // Confirmación visual blindada
-                Swal.fire({
+                const { isConfirmed } = await Swal.fire({
                     title: '¿Destruir Ticket?',
                     text: 'Se eliminará del historial permanentemente.',
                     icon: 'warning',
@@ -66,14 +68,15 @@ export const initHistoryUI = () => {
                     confirmButtonColor: '#dc3545',
                     confirmButtonText: 'Sí, borrar',
                     cancelButtonText: 'Cancelar'
-                }).then(async (res) => {
-                    if(res.isConfirmed) {
-                        await db.deleteReceipt(ticketId);
-                        renderHistory(); // Refrescar UI (Desaparecerá el bloque y bajará el gráfico)
-                    }
                 });
+
+                if(isConfirmed) {
+                    await db.deleteReceipt(ticketId);
+                    renderHistory();
+                }
             }
 
+            // Lógica de visualización de foto con Zoom (Panzoom)
             if (viewPhotoBtn) {
                 e.stopPropagation();
                 const photoData = viewPhotoBtn.getAttribute('data-img');
@@ -81,7 +84,6 @@ export const initHistoryUI = () => {
                     const viewerImg = document.getElementById('ticket-viewer-img');
                     const viewModalEl = document.getElementById('viewTicketModal');
                     if (viewerImg && viewModalEl) {
-                        // Limpiamos zoom previo si existiera para que no se herede posición rara
                         if(panzoomInstance) {
                             panzoomInstance.dispose();
                             panzoomInstance = null;
@@ -92,7 +94,7 @@ export const initHistoryUI = () => {
                         if(!viewTicketModal) {
                             viewTicketModal = new bootstrap.Modal(viewModalEl);
                             
-                            // Evento de limpieza al cerrar el modal (Reset completo)
+                            // Limpieza profunda al cerrar
                             viewModalEl.addEventListener('hidden.bs.modal', () => {
                                 if(panzoomInstance) {
                                     panzoomInstance.dispose();
@@ -100,11 +102,10 @@ export const initHistoryUI = () => {
                                 }
                             });
 
-                            // Mejora de UX: Cerrar al hacer clic en la imagen (solo si no estamos haciendo zoom)
+                            // Cerrar al clickear si no hay zoom activo
                             viewerImg.addEventListener('click', () => {
                                 if (panzoomInstance) {
                                     const transform = panzoomInstance.getTransform();
-                                    // Si el zoom es de 1 (original), permitimos cerrar al tocar
                                     if (Math.abs(transform.scale - 1) < 0.01) {
                                         viewTicketModal.hide();
                                     }
@@ -116,7 +117,7 @@ export const initHistoryUI = () => {
 
                         viewTicketModal.show();
 
-                        // Inicializamos PANZOOM tras la animación de apertura para que el cálculo de dimensiones sea correcto
+                        // Inicializamos Panzoom tras un breve retardo para asegurar que el modal está pintado
                         setTimeout(() => {
                             panzoomInstance = panzoom(viewerImg, {
                                 maxZoom: 5,
@@ -128,6 +129,8 @@ export const initHistoryUI = () => {
                     }
                 }
             }
+
+            // Lógica para añadir foto a un ticket existente
             if (addPhotoBtn) {
                 e.stopPropagation();
                 const ticketId = parseInt(addPhotoBtn.getAttribute('data-id'), 10);
@@ -135,28 +138,22 @@ export const initHistoryUI = () => {
                 
                 if (cameraInput) {
                     cameraInput.click();
-                    
-                    // Listener de un solo uso para capturar esta foto específica
                     cameraInput.onchange = async (event) => {
                         const file = event.target.files[0];
                         if (file) {
                             try {
-                                // 1. Leer imagen cruda
                                 const reader = new FileReader();
                                 reader.readAsDataURL(file);
                                 reader.onload = async (e) => {
                                     const rawBase64 = e.target.result;
-                                    
-                                    // 2. Abrir editor de recorte
+                                    // Flujo de recorte manual
                                     const croppedBase64 = await startCropping(rawBase64);
-                                    
                                     if(croppedBase64) {
-                                        // 3. Guardar en DB
                                         await db.updateReceiptImage(ticketId, croppedBase64);
                                         renderHistory();
                                         Swal.fire({
-                                            title: '¡Escanéo Éxitoso!',
-                                            text: 'Se ha cuadrado el tiquet perfectamente.',
+                                            title: '¡Escaneo Exitoso!',
+                                            text: 'Tiquet actualizado perfectamente.',
                                             icon: 'success',
                                             timer: 1500,
                                             showConfirmButton: false
@@ -164,10 +161,10 @@ export const initHistoryUI = () => {
                                     }
                                 };
                             } catch (error) {
-                                Swal.fire('Error', 'No se pudo procesar el escaneo.', 'error');
+                                Swal.fire('Error', 'Problema al procesar la captura.', 'error');
                             }
                         }
-                        cameraInput.value = ''; // Limpiar para permitir re-selección
+                        cameraInput.value = '';
                     };
                 }
             }

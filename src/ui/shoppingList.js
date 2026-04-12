@@ -3,7 +3,17 @@ import * as bootstrap from 'bootstrap';
 import Swal from 'sweetalert2';
 
 let shoppingListModalElement, btnShoppingList, shoppingListModal;
-let inputElement, suggestionsBox, itemsContainer, emptyMsg, btnClear;
+let inputElement, suggestionsBox, itemsContainer, emptyMsg, btnClear, btnVoice;
+
+// Configuración de Reconocimiento de Voz (Web Speech API)
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.continuous = false; // REVERTIDO: Vuelve a ser disparo único (más simple y estable)
+}
 
 /**
  * Inicializador principal del Módulo de Lista de Tareas (Shopping List).
@@ -17,6 +27,7 @@ export const initShoppingListUI = () => {
     itemsContainer = document.getElementById('shopping-list-items');
     emptyMsg = document.getElementById('shopping-list-empty');
     btnClear = document.getElementById('btn-clear-shopping-list');
+    btnVoice = document.getElementById('btn-voice-shopping');
 
     if (btnShoppingList) {
         btnShoppingList.addEventListener('click', () => {
@@ -76,6 +87,14 @@ export const initShoppingListUI = () => {
             // Si pulsan el contenido principal de la tarea
             toggleItemManualStatus(itemKey);
         });
+    }
+
+    if (btnVoice) {
+        if (!recognition) {
+            btnVoice.style.display = 'none'; 
+        } else {
+            btnVoice.addEventListener('click', startVoiceSession);
+        }
     }
 };
 
@@ -274,3 +293,98 @@ export const syncAutoStrikethrough = (cart) => {
         if(itemsContainer) renderShoppingList(); // Re-render solo si mutó algo en background
     }
 };
+
+/**
+ * Inicia la sesión de escucha de voz.
+ * En este modo simple, se apaga automáticamente tras recibir el primer resultado.
+ */
+const startVoiceSession = () => {
+    if (!recognition) return;
+
+    try {
+        recognition.start();
+        btnVoice.classList.add('btn-voice-active');
+        
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            processVoiceTranscript(transcript);
+        };
+
+        recognition.onend = () => {
+            btnVoice.classList.remove('btn-voice-active');
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Error en reconocimiento:', event.error);
+            btnVoice.classList.remove('btn-voice-active');
+        };
+    } catch (e) {
+        console.error('Error al iniciar voz:', e);
+    }
+};
+
+/**
+ * Procesa el texto capturado para extraer productos.
+ * Soporta patrones como: "Añade manzanas, peras y plátanos".
+ * @param {string} text - El texto crudo reconocido.
+ */
+const processVoiceTranscript = (text) => {
+    let cleanText = text.toLowerCase().trim();
+    
+    // Lista de "palabras de acción" a eliminar al inicio
+    const stopWords = ['añade', 'agrega', 'pon', 'necesito', 'compra', 'apunta'];
+    stopWords.forEach(word => {
+        if (cleanText.startsWith(word)) {
+            cleanText = cleanText.replace(word, '').trim();
+        }
+    });
+
+    // Separar por comas y por la conjunción " y "
+    const items = cleanText.split(/,|\sy\s/).map(i => i.trim()).filter(i => i !== '');
+
+    if (items.length > 0) {
+        const list = db.getShoppingList();
+        items.forEach(name => {
+            list.push({
+                id: Date.now().toString() + Math.random(),
+                type: 'freetext',
+                name: name.charAt(0).toUpperCase() + name.slice(1),
+                done: false
+            });
+        });
+        db.setShoppingList(list);
+        renderShoppingList();
+        
+        // Confirmación Auditiva
+        const confirmMsg = items.length === 1 
+            ? `Añadido ${items[0]} a la lista.`
+            : `Añadidos ${items.length} artículos a la lista.`;
+        
+        speakText(confirmMsg);
+        
+        Swal.fire({
+            title: '¡Oído cocina!',
+            text: confirmMsg,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+    }
+};
+
+/**
+ * Utiliza la API de síntesis de voz para confirmar acciones al usuario.
+ */
+const speakText = (text) => {
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }
+};
+

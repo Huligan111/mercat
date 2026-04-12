@@ -7,15 +7,18 @@ import * as bootstrap from 'bootstrap';
 
 let helpModal;
 
+/**
+ * Inicializa el Módulo de Ayuda.
+ * Registra el evento de clic en el botón (?) de la cabecera para desplegar el manual.
+ */
 export const initHelpUI = () => {
     const btnHelp = document.getElementById('btn-help');
     const helpModalEl = document.getElementById('helpModal');
 
     if (btnHelp && helpModalEl) {
-        // Inicializar el Modal de Bootstrap
+        // Instancia el modal de Bootstrap una sola vez
         helpModal = new bootstrap.Modal(helpModalEl);
 
-        // Evento al pulsar el icono de interrogación
         btnHelp.addEventListener('click', () => {
             helpModal.show();
         });

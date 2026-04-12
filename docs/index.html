@@ -12,11 +12,11 @@
   <!-- Iconos de Bootstrap para mejorar la UI (UX Premium) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <script type="module" crossorigin src="./assets/index-DHH6K99_.js"></script>
+  <script type="module" crossorigin src="./assets/index-C_hGD-9r.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor-scanner-CKLmUZ2r.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-sweetalert-CxryAhEz.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-bootstrap-D7Q7Nh7Y.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-sD-8PoDw.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-DPAK0NSe.css">
 <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
 
 <body class="bg-light">
@@ -333,7 +333,10 @@
             <p class="text-muted small mb-2">Apunta lo que necesitas, se tachará automáticamente al pasarlo por caja.</p>
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-pencil-square"></i></span>
-                <input type="text" id="shopping-list-input" class="form-control border-start-0 ps-0" placeholder="Añadir artículo rápido..." autocomplete="off">
+                <input type="text" id="shopping-list-input" class="form-control border-start-0 border-end-0 ps-0" placeholder="Añadir artículo rápido..." autocomplete="off">
+                <button class="btn btn-outline-primary border-start-0 px-3" type="button" id="btn-voice-shopping" title="Añadir por voz">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
             </div>
             
             <!-- Caja de Sugerencias Pura (Dropdown invisible hasta que se escriba) -->
@@ -398,6 +401,24 @@
               </div>
             </div>
 
+            <!-- Sección: GESTIÓN DE CESTA (NUEVA) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-cart">
+                  <i class="bi bi-cart-check me-2 text-warning"></i> <strong>Gestión de la Cesta</strong>
+                </button>
+              </h2>
+              <div id="help-cart" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>La cesta ha sido optimizada para ser más rápida:</p>
+                  <ul>
+                    <li><strong>Último arriba (LIFO):</strong> El producto que acabas de escanear aparece siempre en la primera fila. ¡No más scroll infinito en compras grandes!</li>
+                    <li><strong>Presupuesto:</strong> Si fijas un tope, el total cambiará a rojo cuando lo superes.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <!-- Sección: PRODUCTOS FRESCOS (NUEVA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
@@ -420,13 +441,16 @@
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-list">
-                  <i class="bi bi-card-checklist me-2 text-primary"></i> <strong>Mi Bloc de Notas</strong>
+                  <i class="bi bi-card-checklist me-2 text-primary"></i> <strong>Mi Bloc de Notas y Dictado</strong>
                 </button>
               </h2>
               <div id="help-list" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>Crea tu lista de la compra desde casa usando el buscador predictivo.</p>
-                  <p><strong>Truco del Súper:</strong> Al escanear un producto que tenías apuntado, la App lo reconocerá y lo <strong>tachará automáticamente</strong> de tu lista de notas. ¡Así sabrás qué te falta por encontrar!</p>
+                  <p>Crea tu lista de la compra desde casa usando el buscador predictivo o tu voz.</p>
+                  <ul>
+                    <li><strong>🎙️ Dictado por Voz:</strong> Pulsa el icono del micrófono azul y di lo que necesites (ej: "Añade pan, huevos y leche"). La App separará los productos automáticamente y te confirmará con voz al terminar.</li>
+                    <li><strong>Truco del Súper:</strong> Al escanear un producto que tenías apuntado, la App lo reconocerá y lo <strong>tachará automáticamente</strong> de tu lista.</li>
+                  </ul>
                 </div>
               </div>
             </div>

@@ -11,10 +11,12 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 *   **📈 Historial Visual & Análisis**: Guarda fotos de tus tiquets reales vinculadas a tus compras. Visualización premium con **Zoom Dinámico** (`panzoom`) y gestos táctiles para no perderte ni un detalle del tiquet original.
 *   **📖 Centro de Ayuda Integrado**: Manual de usuario interactivo accesible desde la propia App. Guías visuales sobre escaneo, gestión de frescos, presupuestos y copias de seguridad para una curva de aprendizaje cero.
 *   **💾 Almacenamiento Híbrido Avanzado**: Uso de `LocalStorage` para el catálogo rápido e **`IndexedDB`** para gestionar datos pesados (imágenes base64 comprimidas), garantizando que tu App nunca se ralentice.
-*   **📝 Bloc de Notas Predictivo (Shopping List)**: Crea tu lista de compra antes de salir de casa. El autocompletado localizará tus productos del Catálogo, ¡y según vayas pasándolos por la cámara se **tacharán automáticamente** de la lista!
+*   **📝 Bloc de Notas con Dictado por Voz**: Crea tu lista de compra antes de salir de casa o sobre la marcha. Incluye un motor de **Reconocimiento de Voz** que entiende frases naturales (ej: "Añade pan, huevos y leche"), separa los productos automáticamente y te confirma la acción mediante **Síntesis de Voz**.
+*   **🛒 Carrito Inteligente LIFO**: El último producto escaneado aparece siempre arriba del todo. Olvídate de hacer scroll para verificar el precio de lo que acabas de meter en la cesta.
 *   **🚨 Cúpula de Presupuesto**: Márcate un tope de gasto al entrar al súper. La contabilidad pulsará en un rojo agresivo cuando traspases la barrera para proteger tus ahorros.
-*   **🔎 Búsqueda Instantánea**: Busca milisegundos entre tus productos guardados por código o nombre gracias al buscador dinámico *en vivo*.
-*   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una AppStore final.
+*   **🔎 Búsqueda Instantánea**: Busca en milisegundos entre tus productos guardados por código o nombre gracias al buscador dinámico *en vivo*.
+*   **💻 Sincronización Bloc-Escáner**: El autocompletado localizará tus productos del Catálogo en tu lista de notas, ¡y según vayas pasándolos por la cámara se **tacharán automáticamente**!
+*   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una App Nativa.
 *   **🤳 Captura Flexible**: ¿Se te olvidó hacer la foto al pagar? No hay problema. Puedes adjuntar la imagen de tu tiquet más tarde directamente desde el historial de gastos.
 *   **🎨 Alertas Animadas Premium**: Integración de notificaciones sutiles con SweetAlert2.
 *   **✏️ Gestión CRUD Total**: Edita nombres, altera precios si han subido/bajado o borra elementos del catálogo con un clic.

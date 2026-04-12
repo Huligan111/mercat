@@ -25,14 +25,20 @@ const beepSound = document.getElementById('beep-sound');
 // Instancia global del escaner
 let html5QrcodeScanner = null;
 
+/**
+ * Reproduce el sonido de "beep" cuando una lectura es exitosa.
+ * Se silencia automáticamente si el navegador bloquea el autoplay.
+ */
 const playSuccessSound = () => {
     if (beepSound) {
-        beepSound.play().catch(e => console.log('Bloqueado temporalmente el audio', e));
+        beepSound.play().catch(e => console.log('Audio bloqueado por política del navegador', e));
     }
 }
 
 /**
- * Lógica Central: Qué pasa cuando se lee un código (ya sea por cámara o teclado)
+ * Lógica Central: Procesa una cadena de texto (barcode) para identificar el producto.
+ * Gestiona tanto códigos EAN-13 estándar como URLs GS1 Digital Link.
+ * @param {string} decodedText - El código crudo leído por el sensor o teclado.
  */
 const handleBarcodeScanned = (decodedText) => {
     playSuccessSound();
@@ -97,12 +103,18 @@ const handleBarcodeScanned = (decodedText) => {
     }
 };
 
+/**
+ * Reanuda el flujo de video del escáner tras una pausa por lectura exitosa.
+ */
 const resumeScanner = () => {
     if (html5QrcodeScanner) {
-        try { html5QrcodeScanner.resume(); } catch (e) { /* silent fail si escanea archivo */ }
+        try { html5QrcodeScanner.resume(); } catch (e) { /* Error silencioso si no hay stream activo */ }
     }
 };
 
+/**
+ * Configura e inicializa el plugin Html5QrcodeScanner con parámetros optimizados.
+ */
 const initCameraScanner = () => {
     try {
         // Vaciamos primero cualquier basura previa para prevenir el error 'removeChild on Node'
@@ -145,7 +157,10 @@ const initCameraScanner = () => {
 
         html5QrcodeScanner.render(onScanSuccess, () => {});
 
-        // --- TRADUCTOR DINÁMICO DE LA LIBRERÍA (UX Premium en Español) ---
+        /**
+         * Traductor Dinámico: Traduce al español los elementos internos de la librería html5-qrcode.
+         * Se encarga de botones de permisos, selección de cámara y modos de escaneo.
+         */
         const translateScannerUI = () => {
             const translations = {
                 "Request Camera Permissions": "Solicitar Permisos de Cámara",

@@ -16,8 +16,116 @@ let btnSetBudget, budgetDisplay, budgetAmountDisplay;
 let currentCartTotal = 0; // Guardará en RAM la suma para cuando el usuario presione Finalizar Compra
 
 /**
+ * Procesa la finalización de la compra.
+ * Realiza comprobaciones de seguridad, gestiona la captura opcional del ticket físico,
+ * guarda el recibo en el historial y limpia el estado de la aplicación.
+ * @returns {Promise<void>}
+ */
+const handleCheckout = async () => {
+    const cart = db.getCart();
+    if (cart.length === 0) return;
+
+    // Verificamos el "Ángel de la Guarda": Artículos en el bloc de notas sin tachar
+    const shoppingList = db.getShoppingList();
+    const pendingItems = shoppingList.filter(item => !item.done);
+    
+    let warningHtml = '';
+    if (pendingItems.length > 0) {
+         const names = pendingItems.map(i => `<li>${i.name}</li>`).join('');
+         warningHtml = `<div class="alert alert-danger text-start mt-3 border-0 shadow-sm py-3" style="font-size: 1.05rem;">
+                           <strong class="d-block mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ¡ATENCIÓN!</strong> 
+                           Tienes <strong>${pendingItems.length}</strong> apuntes sin tachar:
+                           <ul class="mb-0 mt-2 pl-3 fw-bold">${names}</ul>
+                        </div>`;
+    }
+
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Compra Finalizada?',
+        html: `Se guardará en el Historial tu ticket por importe de <strong>${currentCartTotal.toFixed(2)}€</strong> y se limpiará el carro.
+               ${warningHtml}`,
+        icon: pendingItems.length > 0 ? 'warning' : 'question',
+        showCancelButton: true,
+        confirmButtonColor: pendingItems.length > 0 ? '#dc3545' : '#198754',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: pendingItems.length > 0 ? 'Ignorar y Pagar' : 'Finalizar y Pagar',
+        cancelButtonText: 'Cancelar',
+        backdrop: `rgba(0,0,0,0.7)` 
+    });
+
+    if (!isConfirmed) return;
+
+    // PASO OPCIONAL: Captura de foto del tiquet real
+    const photoResult = await Swal.fire({
+        title: '📸 Prueba Visual',
+        text: '¿Quieres añadir una foto del tiquet físico para el historial?',
+        icon: 'camera',
+        showCancelButton: true,
+        confirmButtonText: 'Hacer Foto',
+        cancelButtonText: 'Omitir'
+    });
+
+    let ticketImageBase64 = null;
+
+    if (photoResult.isConfirmed) {
+        const cameraInput = document.getElementById('ticket-camera-input');
+        if (cameraInput) {
+            cameraInput.click();
+            
+            const fileCapturePromise = new Promise((resolve) => {
+                cameraInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if(file) {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = async (event) => {
+                            const rawBase64 = event.target.result;
+                            // Iniciamos el proceso de recorte manual (Cropperjs)
+                            const croppedBase64 = await startCropping(rawBase64);
+                            resolve(croppedBase64 || null);
+                        };
+                    } else {
+                        resolve(null);
+                    }
+                };
+            });
+            ticketImageBase64 = await fileCapturePromise;
+        }
+    }
+
+    // Guardado persistente en IndexedDB (Asíncrono para no bloquear la UI)
+    await db.saveReceipt(currentCartTotal, cart, ticketImageBase64);
+    
+    // Limpieza de estado
+    db.clearCart();
+    
+    // Gestión del Bloc de Notas post-compra
+    if(shoppingList.length > 0) {
+         Swal.fire({
+              title: '¡Compra Registrada!',
+              text: '¿Quieres que vacíe por completo también tu Bloc de Notas para la próxima vez?',
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, limpiar Bloc',
+              cancelButtonText: 'Mantener Bloc'
+         }).then(async r => {
+              if(r.isConfirmed) await db.setShoppingList([]);
+              renderCart();
+         });
+    } else {
+        renderCart();
+        Swal.fire({
+            title: '¡Guardado!',
+            text: 'El ticket contable se generó y ya es visible en gráficas.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+};
+
+/**
  * Inicializador principal del UI del Carrito.
- * Atrapa los elementos del DOM solo una vez cuando la app arranca.
+ * Configura los elementos del DOM y asigna escuchadores de eventos globales.
  */
 export const initCartUI = () => {
     cartItemsContainer = document.getElementById('cart-items');
@@ -29,7 +137,7 @@ export const initCartUI = () => {
     budgetDisplay = document.getElementById('budget-display');
     budgetAmountDisplay = document.getElementById('budget-amount');
 
-    // Manejador del Sistema de Presupuestos (Pregunta al usuario y activa el techo de gasto)
+    // Manejador del Sistema de Presupuestos
     if (btnSetBudget) {
         btnSetBudget.addEventListener('click', () => {
             Swal.fire({
@@ -46,10 +154,7 @@ export const initCartUI = () => {
                 if(result.isConfirmed) {
                     const limit = parseFloat(result.value) || 0;
                     db.setBudget(limit);
-                    
-                    // Forzar repintado inmediato para que el Footer reaccione y decida si debe latir en rojo
                     renderCart(); 
-                    
                     if (limit > 0) {
                         Swal.fire({ 
                             title: '¡Vigilando!', 
@@ -64,31 +169,25 @@ export const initCartUI = () => {
         });
     }
 
-    // Asignamos el evento al botón general de "Vaciar Carrito"
     if (btnClearCart) {
         btnClearCart.addEventListener('click', () => {
             const cart = db.getCart();
-            // Prevención: Si no hay items, no preguntamos nada para evitar molestos pop-ups innecesarios.
             if (cart.length === 0) return; 
             
-            // Lanzamos un modal elegante con efecto visual oscurecido para pedir confirmación
             Swal.fire({
               title: '¿Vaciar Lista?',
               text: "Se eliminarán todos los elementos escaneados de esta compra.",
               icon: 'warning',
               showCancelButton: true,
-              confirmButtonColor: '#dc3545', // Código CSS de nuestro rojo Bootstrap
+              confirmButtonColor: '#dc3545',
               cancelButtonColor: '#6c757d',
               confirmButtonText: 'Sí, vaciar',
               cancelButtonText: 'Cancelar',
               backdrop: `rgba(0,0,0,0.5)`
             }).then((result) => {
               if (result.isConfirmed) {
-                  // Si el usuario acepta, llamamos a la capa de datos (storage) y repintamos
                   db.clearCart();
                   renderCart();
-                  
-                  // Notificación final rápida
                   Swal.fire({
                       title: 'Vaciada',
                       text: 'Tu cesta está limpia otra vez.',
@@ -101,121 +200,8 @@ export const initCartUI = () => {
         });
     }
 
-    // Nuevo manejador de evento para el Checkout protegido con Confirmación Visual Cuidada y Prevención de Tareas
     if (btnCheckout) {
-        btnCheckout.addEventListener('click', () => {
-            const cart = db.getCart();
-            if (cart.length === 0) return;
-
-            // Verificamos el Ángel de la Guarda (Lista de Tareas Inteligente)
-            const shoppingList = db.getShoppingList();
-            const pendingItems = shoppingList.filter(item => !item.done);
-            
-            let warningHtml = '';
-            if (pendingItems.length > 0) {
-                 const names = pendingItems.map(i => `<li>${i.name}</li>`).join('');
-                 warningHtml = `<div class="alert alert-danger text-start mt-3 border-0 shadow-sm py-3" style="font-size: 1.05rem;">
-                                   <strong class="d-block mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ¡ATENCIÓN!</strong> 
-                                   Tienes <strong>${pendingItems.length}</strong> apuntes sin tachar:
-                                   <ul class="mb-0 mt-2 pl-3 fw-bold">${names}</ul>
-                                </div>`;
-            }
-
-            Swal.fire({
-                title: '¿Compra Finalizada?',
-                html: `Se guardará en el Historial tu ticket por importe de <strong>${currentCartTotal.toFixed(2)}€</strong> y se limpiará el carro.
-                       ${warningHtml}`,
-                icon: pendingItems.length > 0 ? 'warning' : 'question',
-                showCancelButton: true,
-                confirmButtonColor: pendingItems.length > 0 ? '#dc3545' : '#198754', // Uso del Rojo si hay peligro, o Verde si todo OK
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: pendingItems.length > 0 ? 'Ignorar y Pagar' : 'Finalizar y Pagar',
-                cancelButtonText: 'Cancelar',
-                backdrop: `rgba(0,0,0,0.7)` 
-            }).then(async (result) => {
-                if(result.isConfirmed) {
-                    
-                    // PASO OPCIONAL: ¿Quieres hacer foto al tiquet real?
-                    const photoResult = await Swal.fire({
-                        title: '📸 Prueba Visual',
-                        text: '¿Quieres añadir una foto del tiquet físico para el historial?',
-                        icon: 'camera',
-                        showCancelButton: true,
-                        confirmButtonText: 'Hacer Foto',
-                        cancelButtonText: 'Omitir'
-                    });
-
-                    let ticketImageBase64 = null;
-
-                    if (photoResult.isConfirmed) {
-                        // Disparamos el input oculto de la cámara
-                        const cameraInput = document.getElementById('ticket-camera-input');
-                        if (cameraInput) {
-                            cameraInput.click();
-                            
-                            // Esperamos a que el usuario termine con la cámara nativa
-                            const fileCapturePromise = new Promise((resolve) => {
-                                cameraInput.onchange = async (e) => {
-                                    const file = e.target.files[0];
-                                    if(file) {
-                                        // 1. Convertimos a base64 crudo para el cropper
-                                        const reader = new FileReader();
-                                        reader.readAsDataURL(file);
-                                        reader.onload = async (event) => {
-                                            const rawBase64 = event.target.result;
-                                            
-                                            // 2. Abrimos el sistema de escaneo (Recorte manual)
-                                            const croppedBase64 = await startCropping(rawBase64);
-                                            
-                                            if(croppedBase64) {
-                                                // 3. El resultado ya está optimizado por el cropper, pero podemos pasarlo por compress si queremos forzar más ligereza
-                                                resolve(croppedBase64);
-                                            } else {
-                                                resolve(null);
-                                            }
-                                        };
-                                    } else {
-                                        resolve(null);
-                                    }
-                                };
-                            });
-
-                            ticketImageBase64 = await fileCapturePromise;
-                        }
-                    }
-
-                    // Guardamos el recibo (Ticket) mandándole la Inyección al Storage (Ahora ASÍNCRONO)
-                    await db.saveReceipt(currentCartTotal, cart, ticketImageBase64);
-                    
-                    // Limpiamos Carro permanentemente
-                    db.clearCart();
-                    
-                    // Preguntamos amablemente si purgamos la lista pre-vuelo también
-                    if(shoppingList.length > 0) {
-                         Swal.fire({
-                              title: '¡Compra Registrada!',
-                              text: '¿Quieres que vacíe por completo también tu Bloc de Notas para la próxima vez?',
-                              icon: 'question',
-                              showCancelButton: true,
-                              confirmButtonText: 'Sí, limpiar Bloc',
-                              cancelButtonText: 'Mantener Bloc'
-                         }).then(async r => {
-                              if(r.isConfirmed) await db.setShoppingList([]); // Limpiamos tabla
-                              renderCart();
-                         });
-                    } else {
-                        renderCart();
-                        Swal.fire({
-                            title: '¡Guardado!',
-                            text: 'El ticket contable se generó y ya es visible en gráficas.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                }
-            });
-        });
+        btnCheckout.addEventListener('click', handleCheckout);
     }
 };
 
@@ -242,8 +228,8 @@ export const renderCart = () => {
         emptyCartMsg.style.display = 'none';
     }
 
-    // Iteramos por la matriz del array guardado en localStorage
-    cart.forEach(item => {
+    // Iteramos por la matriz del array en orden inverso (último escaneado arriba)
+    [...cart].reverse().forEach(item => {
         // Multiplicamos el coste unitario por la cantidad para el subtotal de fila
         const itemSubtotal = item.price * item.quantity;
         totalAcumulado += itemSubtotal;
@@ -327,26 +313,27 @@ const attachCartButtonListeners = () => {
     // Escucha para restar cantidad
     document.querySelectorAll('.btn-decrease').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            db.decreaseQuantity(e.target.dataset.id);
-            renderCart(); // Forzamos refresco gráfico tras descontar
+            const id = e.currentTarget.dataset.id;
+            db.decreaseQuantity(id);
+            renderCart();
         });
     });
 
     // Escucha para sumar cantidad
     document.querySelectorAll('.btn-increase').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            db.increaseQuantity(e.target.dataset.id);
-            renderCart(); // Forzamos refresco gráfico
+            const id = e.currentTarget.dataset.id;
+            db.increaseQuantity(id);
+            renderCart();
         });
     });
 
-    // Escucha para eliminar la fila entera de un plumazo
+    // Escucha para eliminar la fila entera
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Buscamos el origen del botón más cercano resolviendo el problema de hacer tap en el icono basura
-            const itemId = e.target.closest('button').dataset.id;
-            db.removeFromCart(itemId);
-            renderCart(); 
+            const id = e.currentTarget.dataset.id;
+            db.removeFromCart(id);
+            renderCart();
         });
     });
 };
