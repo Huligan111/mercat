@@ -24,7 +24,7 @@
   <!-- Navbar Superior Premium -->
   <nav class="navbar navbar-dark bg-primary shadow-sm mb-3">
     <div class="container d-flex justify-content-between align-items-center">
-      <span class="navbar-brand mb-0 h1"><i class="bi bi-cart-check"></i> Asistente de compras</span>
+      <span class="navbar-brand mb-0 h1"><i class="bi bi-cart-check"></i> Asistente de compras Mercat</span>
       <div>
         <button class="btn btn-outline-light btn-sm fw-bold me-1 shadow-sm" id="btn-shopping-list" type="button">
           <i class="bi bi-card-checklist"></i> Lista
@@ -55,16 +55,17 @@
 
           <!-- Fallback: Entrada manual predictiva -->
           <div class="position-relative">
-              <form id="manual-form" class="input-group">
-                <input type="text" id="manual-barcode" class="form-control" placeholder="Buscar por código o nombre..."
-                  aria-label="Código manual" autocomplete="off">
-                <button class="btn btn-outline-primary" type="submit" id="btn-manual-add">
-                  <i class="bi bi-search"></i> Buscar
-                </button>
-              </form>
-              <!-- Dropdown de sugerencias predictivas -->
-              <ul id="manual-suggestions" class="list-group position-absolute w-100 shadow-lg d-none text-start mt-1" style="max-height: 200px; overflow-y: auto; z-index: 1050;">
-              </ul>
+            <form id="manual-form" class="input-group">
+              <input type="text" id="manual-barcode" class="form-control" placeholder="Buscar por código o nombre..."
+                aria-label="Código manual" autocomplete="off">
+              <button class="btn btn-outline-primary" type="submit" id="btn-manual-add">
+                <i class="bi bi-search"></i> Buscar
+              </button>
+            </form>
+            <!-- Dropdown de sugerencias predictivas -->
+            <ul id="manual-suggestions" class="list-group position-absolute w-100 shadow-lg d-none text-start mt-1"
+              style="max-height: 200px; overflow-y: auto; z-index: 1050;">
+            </ul>
           </div>
         </div>
       </div>
@@ -112,18 +113,21 @@
   <div class="fixed-bottom bg-white border-top shadow-lg p-3 d-flex justify-content-between align-items-center"
     style="z-index: 1040;">
     <div class="d-flex align-items-center">
-        <div class="me-3">
-            <small id="budget-display" class="text-muted d-none" style="font-size: 0.7rem; display: block; margin-bottom: -2px;">Límite: <span id="budget-amount">0</span>€</small>
-            <h3 class="mb-0 text-primary fw-bold" id="cart-total">0.00 €</h3>
-        </div>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm" id="btn-set-budget" title="Configurar Límite" aria-label="Configurar Presupuesto">
-            <i class="bi bi-piggy-bank"></i>
-        </button>
+      <div class="me-3">
+        <small id="budget-display" class="text-muted d-none"
+          style="font-size: 0.7rem; display: block; margin-bottom: -2px;">Límite: <span
+            id="budget-amount">0</span>€</small>
+        <h3 class="mb-0 text-primary fw-bold" id="cart-total">0.00 €</h3>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm" id="btn-set-budget"
+        title="Configurar Límite" aria-label="Configurar Presupuesto">
+        <i class="bi bi-piggy-bank"></i>
+      </button>
     </div>
     <div class="text-end">
-        <button class="btn btn-success btn-lg rounded-pill shadow fw-bold px-4 pulse-checkout" id="btn-checkout">
-            <i class="bi bi-check-circle"></i> Finalizar
-        </button>
+      <button class="btn btn-success btn-lg rounded-pill shadow fw-bold px-4 pulse-checkout" id="btn-checkout">
+        <i class="bi bi-check-circle"></i> Finalizar
+      </button>
     </div>
   </div>
 
@@ -191,30 +195,30 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body p-3">
-          
+
           <div class="d-flex justify-content-between align-items-center mb-3">
-             <h6 class="mb-0 fw-bold text-secondary">Evolución</h6>
-             <select class="form-select form-select-sm w-auto shadow-sm" id="chart-mode-select">
-                <option value="meses">Mensual (Anual)</option>
-                <option value="dias">Diario (Este Mes)</option>
-             </select>
+            <h6 class="mb-0 fw-bold text-secondary">Evolución</h6>
+            <select class="form-select form-select-sm w-auto shadow-sm" id="chart-mode-select">
+              <option value="meses">Mensual (Anual)</option>
+              <option value="dias">Diario (Este Mes)</option>
+            </select>
           </div>
 
           <!-- Lienzo de Gráfico -->
           <div class="card shadow-sm border-0 mb-4 rounded-3 p-2 bg-light">
-             <canvas id="expenseChart" style="max-height: 250px;"></canvas>
+            <canvas id="expenseChart" style="max-height: 250px;"></canvas>
           </div>
 
           <h6 class="fw-bold text-secondary mb-3">Últimos Tickets Generados</h6>
           <div class="list-group list-group-flush border-top" id="receipts-list">
-             <!-- Inyectado via JS -->
+            <!-- Inyectado via JS -->
           </div>
-          
+
           <div id="empty-history-msg" class="text-center text-muted p-5 d-none">
             <i class="bi bi-receipt fs-1"></i><br>
             Aún no has finalizado ninguna compra.
           </div>
-          
+
         </div>
       </div>
     </div>
@@ -246,21 +250,21 @@
             Tu catálogo está vacío.
           </div>
         </div>
-        
-        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-center gap-1 flex-nowrap rounded-bottom-4">
-            <button class="btn btn-sm btn-outline-secondary" id="btn-export-catalog">
-                <i class="bi bi-file-earmark-arrow-down"></i> Exportar
-            </button>
-            
-            <button class="btn btn-sm btn-primary shadow-sm fw-bold px-3" id="btn-inventory-add-product">
-                <i class="bi bi-plus-lg"></i> Insertar
-            </button>
 
-            <label class="btn btn-sm btn-outline-primary mb-0" for="btn-import-catalog" style="cursor: pointer;">
-                <i class="bi bi-file-earmark-arrow-up"></i> Importar
-                <!-- Imput de Archivo Camuflado para mejor diseño UI -->
-                <input type="file" id="btn-import-catalog" accept=".json" style="display: none;">
-            </label>
+        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-center gap-1 flex-nowrap rounded-bottom-4">
+          <button class="btn btn-sm btn-outline-secondary" id="btn-export-catalog">
+            <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+          </button>
+
+          <button class="btn btn-sm btn-primary shadow-sm fw-bold px-3" id="btn-inventory-add-product">
+            <i class="bi bi-plus-lg"></i> Insertar
+          </button>
+
+          <label class="btn btn-sm btn-outline-primary mb-0" for="btn-import-catalog" style="cursor: pointer;">
+            <i class="bi bi-file-earmark-arrow-up"></i> Importar
+            <!-- Imput de Archivo Camuflado para mejor diseño UI -->
+            <input type="file" id="btn-import-catalog" accept=".json" style="display: none;">
+          </label>
         </div>
 
       </div>
@@ -271,15 +275,16 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content bg-transparent border-0">
         <div class="modal-body p-0 text-center position-relative" style="cursor: zoom-out;">
-          <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 shadow" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 shadow"
+            data-bs-dismiss="modal" aria-label="Close"></button>
           <img id="ticket-viewer-img" src="" class="img-fluid rounded shadow-lg" style="max-height: 80vh;">
         </div>
         <div class="modal-footer border-0 justify-content-center bg-transparent">
-            <button type="button" class="btn btn-lg rounded-pill px-5 shadow-lg fw-bold text-white border-0" 
-                    data-bs-dismiss="modal"
-                    style="background: linear-gradient(45deg, #f44336, #ff9800); letter-spacing: 0.5px;">
-                <i class="bi bi-x-circle-fill me-2"></i> Cerrar Visor
-            </button>
+          <button type="button" class="btn btn-lg rounded-pill px-5 shadow-lg fw-bold text-white border-0"
+            data-bs-dismiss="modal"
+            style="background: linear-gradient(45deg, #f44336, #ff9800); letter-spacing: 0.5px;">
+            <i class="bi bi-x-circle-fill me-2"></i> Cerrar Visor
+          </button>
         </div>
       </div>
     </div>
@@ -289,7 +294,8 @@
   <input type="file" id="ticket-camera-input" accept="image/*" capture="environment" style="display: none;">
 
   <!-- Novedad: Modal para RECORTAR EL TIQUET (Escáner) -->
-  <div class="modal fade" id="cropTicketModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="cropTicketModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg rounded-4">
         <div class="modal-header bg-dark text-white border-bottom-0 rounded-top-4">
@@ -297,18 +303,18 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-0 bg-secondary" style="height: 60vh; overflow: hidden;">
-            <!-- Contenedor donde Cropper.js hará su magia -->
-            <img id="cropper-target-img" src="" style="max-width: 100%; display: block;">
+          <!-- Contenedor donde Cropper.js hará su magia -->
+          <img id="cropper-target-img" src="" style="max-width: 100%; display: block;">
         </div>
         <div class="modal-footer justify-content-between bg-white rounded-bottom-4">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <div class="btn-group">
-              <button type="button" class="btn btn-outline-dark" id="btn-crop-rotate-left" title="Rotar Izquierda">
-                <i class="bi bi-arrow-counterclockwise"></i>
-              </button>
-              <button type="button" class="btn btn-outline-dark" id="btn-crop-rotate-right" title="Rotar Derecha">
-                <i class="bi bi-arrow-clockwise"></i>
-              </button>
+            <button type="button" class="btn btn-outline-dark" id="btn-crop-rotate-left" title="Rotar Izquierda">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+            <button type="button" class="btn btn-outline-dark" id="btn-crop-rotate-right" title="Rotar Derecha">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
           </div>
           <button type="button" class="btn btn-success fw-bold px-4 shadow-sm" id="btn-crop-confirm">
             <i class="bi bi-check-all"></i> Listo
@@ -319,49 +325,55 @@
   </div>
 
   <!-- Novedad: Modal Bootstrap de LISTA DE LA COMPRA INTELIGENTE -->
-  <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-labelledby="shoppingListModalLabel" aria-hidden="true">
+  <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-labelledby="shoppingListModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable mt-2">
       <div class="modal-content border-0 shadow-lg rounded-4">
         <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
-          <h1 class="modal-title fs-5" id="shoppingListModalLabel"><i class="bi bi-card-checklist"></i> Mi Bloc de Notas</h1>
+          <h1 class="modal-title fs-5" id="shoppingListModalLabel"><i class="bi bi-card-checklist"></i> Mi Bloc de Notas
+          </h1>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body p-0 position-relative bg-light">
-          
+
           <!-- Bloque de búsqueda predictiva -->
           <div class="p-3 bg-white border-bottom position-sticky top-0 shadow-sm" style="z-index: 10;">
-            <p class="text-muted small mb-2">Apunta lo que necesitas, se tachará automáticamente al pasarlo por caja.</p>
+            <p class="text-muted small mb-2">Apunta lo que necesitas, se tachará automáticamente al pasarlo por caja.
+            </p>
             <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-pencil-square"></i></span>
-                <input type="text" id="shopping-list-input" class="form-control border-start-0 border-end-0 ps-0" placeholder="Añadir artículo rápido..." autocomplete="off">
-                <button class="btn btn-outline-primary border-start-0 px-3" type="button" id="btn-voice-shopping" title="Añadir por voz">
-                    <i class="bi bi-mic-fill"></i>
-                </button>
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-pencil-square"></i></span>
+              <input type="text" id="shopping-list-input" class="form-control border-start-0 border-end-0 ps-0"
+                placeholder="Añadir artículo rápido..." autocomplete="off">
+              <button class="btn btn-outline-primary border-start-0 px-3" type="button" id="btn-voice-shopping"
+                title="Añadir por voz">
+                <i class="bi bi-mic-fill"></i>
+              </button>
             </div>
-            
+
             <!-- Caja de Sugerencias Pura (Dropdown invisible hasta que se escriba) -->
-            <ul id="shopping-list-suggestions" class="list-group position-absolute w-100 shadow-lg d-none" style="max-height: 200px; overflow-y: auto; z-index: 11; width: calc(100% - 2rem) !important;">
-                <!-- Se inyecta por JS -->
+            <ul id="shopping-list-suggestions" class="list-group position-absolute w-100 shadow-lg d-none"
+              style="max-height: 200px; overflow-y: auto; z-index: 11; width: calc(100% - 2rem) !important;">
+              <!-- Se inyecta por JS -->
             </ul>
           </div>
 
           <!-- Listado Principal -->
           <div class="p-3">
-              <ul class="list-group list-group-flush rounded-3 shadow-sm" id="shopping-list-items">
-                <!-- Se inyectan tareas aquí -->
-              </ul>
-              
-              <div id="shopping-list-empty" class="text-center text-muted p-5">
-                <i class="bi bi-journal-text fs-1"></i><br>
-                Tu bloc está vacío.
-              </div>
+            <ul class="list-group list-group-flush rounded-3 shadow-sm" id="shopping-list-items">
+              <!-- Se inyectan tareas aquí -->
+            </ul>
+
+            <div id="shopping-list-empty" class="text-center text-muted p-5">
+              <i class="bi bi-journal-text fs-1"></i><br>
+              Tu bloc está vacío.
+            </div>
           </div>
 
         </div>
         <div class="modal-footer pb-3 pt-3 bg-white rounded-bottom-4 d-flex justify-content-center">
-            <button class="btn btn-outline-danger btn-sm rounded-pill" id="btn-clear-shopping-list">
-                <i class="bi bi-trash"></i> Vaciar Notas
-            </button>
+          <button class="btn btn-outline-danger btn-sm rounded-pill" id="btn-clear-shopping-list">
+            <i class="bi bi-trash"></i> Vaciar Notas
+          </button>
         </div>
       </div>
     </div>
@@ -376,12 +388,13 @@
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
       <div class="modal-content border-0 shadow-lg rounded-4">
         <div class="modal-header bg-primary text-white border-bottom-0 rounded-top-4">
-          <h5 class="modal-title" id="helpModalLabel"><i class="bi bi-info-circle-fill"></i> Centro de Ayuda & Guía de Uso</h5>
+          <h5 class="modal-title" id="helpModalLabel"><i class="bi bi-info-circle-fill"></i> Centro de Ayuda & Guía de
+            Uso</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body p-0">
           <div class="accordion accordion-flush" id="helpAccordion">
-            
+
             <!-- Sección 1: Escaneo -->
             <div class="accordion-item">
               <h2 class="accordion-header">
@@ -394,9 +407,11 @@
                   <p>Apunta con la cámara al código de barras. La App lo detectará automáticamente.</p>
                   <ul>
                     <li><strong>EAN (Barras):</strong> Códigos estándar de productos envasados.</li>
-                    <li><strong>Pausa Inteligente:</strong> El escáner se pausa 2 segundos tras cada lectura para que no dupliques artículos sin querer.</li>
+                    <li><strong>Pausa Inteligente:</strong> El escáner se pausa 2 segundos tras cada lectura para que no
+                      dupliques artículos sin querer.</li>
                   </ul>
-                  <div class="alert alert-info py-2 small"><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si el código no lee bien, prueba a alejar un poco el móvil para que enfoque mejor.</div>
+                  <div class="alert alert-info py-2 small"><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si el
+                    código no lee bien, prueba a alejar un poco el móvil para que enfoque mejor.</div>
                 </div>
               </div>
             </div>
@@ -404,7 +419,8 @@
             <!-- Sección: GESTIÓN DE CESTA (NUEVA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-cart">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-cart">
                   <i class="bi bi-cart-check me-2 text-warning"></i> <strong>Gestión de la Cesta</strong>
                 </button>
               </h2>
@@ -412,7 +428,8 @@
                 <div class="accordion-body">
                   <p>La cesta ha sido optimizada para ser más rápida:</p>
                   <ul>
-                    <li><strong>Último arriba (LIFO):</strong> El producto que acabas de escanear aparece siempre en la primera fila. ¡No más scroll infinito en compras grandes!</li>
+                    <li><strong>Último arriba (LIFO):</strong> El producto que acabas de escanear aparece siempre en la
+                      primera fila. ¡No más scroll infinito en compras grandes!</li>
                     <li><strong>Presupuesto:</strong> Si fijas un tope, el total cambiará a rojo cuando lo superes.</li>
                   </ul>
                 </div>
@@ -422,16 +439,20 @@
             <!-- Sección: PRODUCTOS FRESCOS (NUEVA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-fresh">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-fresh">
                   <i class="bi bi-qr-code-scan me-2 text-success"></i> <strong>Carnicería y Frescos (QR)</strong>
                 </button>
               </h2>
               <div id="help-fresh" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>¿Has comprado carne o fruta al peso? Estas etiquetas suelen llevar un código <strong>QR (GS1 Digital Link)</strong>.</p>
+                  <p>¿Has comprado carne o fruta al peso? Estas etiquetas suelen llevar un código <strong>QR (GS1
+                      Digital Link)</strong>.</p>
                   <ul>
-                    <li><strong>Detección automática:</strong> La App lee el peso exacto (kg) y el precio total de la etiqueta.</li>
-                    <li>No importa el precio que tengas en tu catálogo; en frescos, siempre prevalece el de la etiqueta del día.</li>
+                    <li><strong>Detección automática:</strong> La App lee el peso exacto (kg) y el precio total de la
+                      etiqueta.</li>
+                    <li>No importa el precio que tengas en tu catálogo; en frescos, siempre prevalece el de la etiqueta
+                      del día.</li>
                   </ul>
                 </div>
               </div>
@@ -440,7 +461,8 @@
             <!-- Sección 2: Lista Inteligente -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-list">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-list">
                   <i class="bi bi-card-checklist me-2 text-primary"></i> <strong>Mi Bloc de Notas y Dictado</strong>
                 </button>
               </h2>
@@ -448,8 +470,12 @@
                 <div class="accordion-body">
                   <p>Crea tu lista de la compra desde casa usando el buscador predictivo o tu voz.</p>
                   <ul>
-                    <li><strong>🎙️ Dictado por Voz:</strong> Pulsa el icono del micrófono azul y di lo que necesites (ej: "Añade pan, huevos y leche"). La App separará los productos automáticamente y te confirmará con voz al terminar.</li>
-                    <li><strong>Truco del Súper:</strong> Al escanear un producto que tenías apuntado, la App lo reconocerá y lo <strong>tachará automáticamente</strong> de tu lista.</li>
+                    <li><strong>🎙️ Dictado por Voz:</strong> Pulsa el icono del micrófono azul y di lo que necesites
+                      (ej: "Añade pan y leche"). La App separará los productos automáticamente y te confirmará
+                      con voz al terminar.</li>
+                    <li><strong>Truco del Súper:</strong> Al escanear un producto que tenías apuntado, la App lo
+                      reconocerá y lo <strong>tachará automáticamente</strong> de tu lista (siempre y cuando se haya
+                      seleccionado producto del catalogo).</li>
                   </ul>
                 </div>
               </div>
@@ -458,7 +484,8 @@
             <!-- Sección: HISTORIAL (AMPLIADA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-history">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-history">
                   <i class="bi bi-graph-up me-2 text-info"></i> <strong>Historial de Gastos</strong>
                 </button>
               </h2>
@@ -466,8 +493,10 @@
                 <div class="accordion-body">
                   <p>Consulta tus compras pasadas y analiza cuánto dinero gastas al mes.</p>
                   <ul>
-                    <li><strong>Gráfica Interactiva:</strong> Toca cualquier columna de la gráfica para ver el gasto total de ese día o mes. Los importes también se ven escritos arriba para mayor facilidad.</li>
-                    <li><strong>Detalle de Ticket:</strong> Pulsa sobre la fecha de un ticket para desplegar la lista de productos que compraste en esa ocasión.</li>
+                    <li><strong>Gráfica Interactiva:</strong> Toca cualquier columna de la gráfica para ver el gasto
+                      total de ese día o mes. Los importes también se ven escritos arriba para mayor facilidad.</li>
+                    <li><strong>Detalle de Ticket:</strong> Pulsa sobre la fecha de un ticket para desplegar la lista de
+                      productos que compraste en esa ocasión.</li>
                   </ul>
                 </div>
               </div>
@@ -476,14 +505,16 @@
             <!-- Sección 4: Digitalizar Tiquets -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-receipts">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-receipts">
                   <i class="bi bi-crop me-2 text-warning"></i> <strong>Digitalizar Tiquets Reales</strong>
                 </button>
               </h2>
               <div id="help-receipts" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                   <p>Guarda una copia visual de tu tiquet físico para evitar que se borre la tinta térmica.</p>
-                  <p>Tras la compra, captura el tiquet y usa el <strong>Escáner Manual</strong> (las esquinas azules) para recortar solo el papel. La foto se guardará optimizada en el historial.</p>
+                  <p>Tras la compra, captura el tiquet y usa el <strong>Escáner Manual</strong> (las esquinas azules)
+                    para recortar solo el papel. La foto se guardará optimizada en el historial.</p>
                 </div>
               </div>
             </div>
@@ -491,13 +522,16 @@
             <!-- Sección: INVENTARIO (NUEVA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-inventory">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-inventory">
                   <i class="bi bi-pencil-square me-2 text-dark"></i> <strong>Editar Inventario</strong>
                 </button>
               </h2>
               <div id="help-inventory" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>Si un producto ha cambiado de nombre o precio, puedes gestionarlo desde el botón <strong>Inventario</strong>.</p>
+                  <p>Si un producto ha cambiado de nombre o precio, puedes gestionarlo desde el botón
+                    <strong>Inventario</strong>.
+                  </p>
                   <ul>
                     <li>Busca el producto por su nombre o código.</li>
                     <li>Pulsa el icono de editar (`bi-pencil`) para actualizar sus datos de forma permanente.</li>
@@ -509,7 +543,8 @@
             <!-- Sección: INSTALACIÓN PWA (NUEVA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-install">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-install">
                   <i class="bi bi-phone me-2 text-primary"></i> <strong>Instalar como App Nativa</strong>
                 </button>
               </h2>
@@ -517,8 +552,11 @@
                 <div class="accordion-body">
                   <p>Puedes usar Mercat App sin abrir el navegador:</p>
                   <ul>
-                    <li><strong>Android (Chrome):</strong> Pulsa los 3 puntos y selecciona <strong>"Añadir a la pantalla de inicio"</strong>, <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar aplicación"</strong>.</li>
-                    <li><strong>iOS (Safari):</strong> Pulsa el botón "Compartir" y selecciona "Añadir a pantalla de inicio".</li>
+                    <li><strong>Android (Chrome):</strong> Pulsa los 3 puntos y selecciona <strong>"Añadir a la pantalla
+                        de inicio"</strong>, <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar
+                        aplicación"</strong>.</li>
+                    <li><strong>iOS (Safari):</strong> Pulsa el botón "Compartir" y selecciona "Añadir a pantalla de
+                      inicio".</li>
                   </ul>
                   <p>Funcionará a pantalla completa y mucho más rápido.</p>
                 </div>
@@ -528,7 +566,8 @@
             <!-- Sección: SEGURIDAD (AMPLIADA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help-data">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-data">
                   <i class="bi bi-shield-check me-2 text-secondary"></i> <strong>Tus Datos y Privacidad</strong>
                 </button>
               </h2>
@@ -538,7 +577,9 @@
                   <ul>
                     <li>No guardamos nada en servidores; todo está en la memoria de tu teléfono.</li>
                     <li>Si borras un ticket, se elimina su foto automáticamente para no ocupar espacio innecesario.</li>
-                    <li>Si borras el historial de Chrome en profundidad, podrías perder los datos. ¡Usa el botón de <strong>Exportar</strong> del Inventario como copia de seguridad!</li>
+                    <li>Si borras el historial de Chrome en profundidad, podrías perder los datos. ¡Usa el botón de
+                      <strong>Exportar</strong> del Inventario como copia de seguridad!
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -547,7 +588,8 @@
           </div>
         </div>
         <div class="modal-footer border-top-0 justify-content-center pb-4">
-          <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-dismiss="modal">¡Entendido!</button>
+          <button type="button" class="btn btn-outline-primary rounded-pill px-4"
+            data-bs-dismiss="modal">¡Entendido!</button>
         </div>
       </div>
     </div>
