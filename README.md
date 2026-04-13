@@ -4,7 +4,7 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 
 ## ✨ Características Principales
 
-*   **📷 Escáner de Códigos de Barras Intencional**: Lector integrado súper rápido. Pausa automática al detectar productos para que no se vuelva loco leyendo el mismo producto.
+*   **📷 Escáner de Cámara Inteligente**: Auto-arranca la cámara trasera al abrir la App sin pulsar nada. Controles integrados para **Detener/Iniciar**, **Cambiar cámara** (frontal ↔ trasera), **Escanear desde imagen** (galería) y **Linterna/Flash** (en Android). Pausa automática tras cada lectura para evitar duplicados.
 *   **📲 Instalación Nativa (PWA)**: Descargable e instalable en la pantalla de inicio de dispositivos iOS/Android. Soporte 100% **Offline** (tu catálogo y la cámara seguirán funcionando en modo avión) y sistema *autoUpdate* silencioso.
 *   **🥩 Escáner Avanzado de Frescos (GS1 Digital Link)**: Inteligencia inyectada para decodificar al vuelo URLs densas de códigos QR de supermercados (ej: etiquetas Mercadona). Extrae el GTIN puro, aísla el peso variable y sobreescribe dinámicamente tu importe exacto de caja.
 *   **📷 Escáner de Tiquets Inteligente (Smart Scan)**: Sistema de recorte manual con `Cropper.js`. Encuadra tus tiquets físicos para que se vean limpios, rectos y sin fondos, simulando un escáner de documentos profesional.

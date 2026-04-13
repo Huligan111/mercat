@@ -5,7 +5,7 @@
 import './style.css'; 
 import 'cropperjs/dist/cropper.css';
 import * as db from './storage.js';
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import Swal from 'sweetalert2';
 
 // Importamos los Módulos de Componentes Visuales Creados
@@ -22,7 +22,7 @@ const manualForm = document.getElementById('manual-form');
 const manualBarcode = document.getElementById('manual-barcode');
 const beepSound = document.getElementById('beep-sound');
 
-// Instancia global del escaner
+// Instancia global del escaner (API de control directo, sin UI propia)
 let html5QrcodeScanner = null;
 
 /**
@@ -108,89 +108,179 @@ const handleBarcodeScanned = (decodedText) => {
  */
 const resumeScanner = () => {
     if (html5QrcodeScanner) {
-        try { html5QrcodeScanner.resume(); } catch (e) { /* Error silencioso si no hay stream activo */ }
+        try { html5QrcodeScanner.resume(); } catch (e) { /* silencioso */ }
     }
 };
 
 /**
- * Configura e inicializa el plugin Html5QrcodeScanner con parámetros optimizados.
+ * Configura e inicializa el escáner usando la API directa de Html5Qrcode.
+ * Auto-arranca con la cámara trasera sin mostrar UI de selección.
+ * Expone controles para detener, cambiar cámara y escanear desde imagen.
  */
 const initCameraScanner = () => {
     try {
-        // Vaciamos primero cualquier basura previa para prevenir el error 'removeChild on Node'
         document.getElementById('reader').innerHTML = '';
 
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            { 
-                fps: 30, // TRIPLE de velocidad de muestreo. Consume más batería pero caza al vuelo.
-                qrbox: 250, 
-                aspectRatio: 1.0,
-                // Limitamos a los formatos de Súper (EAN) y Charcutería (QR) para que la CPU no pierda el tiempo buscando códigos espaciales o cajas de Amazon (Code128)
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.QR_CODE,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.DATA_MATRIX // Por si algún súper europeo los usa
-                ],
-                // Activar acelerador nativo: Usa los Servicios de Google Play Vision en Android en vez de la CPU simulada!
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                }
-            }, 
-            false
-        );
+        html5QrcodeScanner = new Html5Qrcode("reader");
+
+        let isScannerRunning = false;
+        let currentFacingMode = "environment"; // Cámara trasera por defecto
+        let isTorchOn = false;
+
+        const scannerConfig = {
+            fps: 20, // 20fps: punto óptimo velocidad/batería (sin experimentalFeatures el decode es JS puro)
+            qrbox: 250,
+            aspectRatio: 1.0,
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.QR_CODE,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.DATA_MATRIX
+            ]
+        };
+
+        // Actualiza el texto e icono del botón Detener/Iniciar
+        const updateToggleBtn = () => {
+            const btn = document.getElementById('btn-toggle-scanner');
+            if (!btn) return;
+            if (isScannerRunning) {
+                btn.innerHTML = '<i class="bi bi-stop-circle"></i> Detener';
+                btn.className = 'btn btn-sm btn-outline-danger rounded-pill px-3';
+            } else {
+                btn.innerHTML = '<i class="bi bi-play-circle"></i> Iniciar';
+                btn.className = 'btn btn-sm btn-outline-success rounded-pill px-3';
+            }
+        };
 
         const onScanSuccess = (decodedText) => {
             try {
-                if (html5QrcodeScanner) {
-                    try { html5QrcodeScanner.pause(true); } catch(err) {} 
-                }
+                try { html5QrcodeScanner.pause(true); } catch(err) {}
                 handleBarcodeScanned(decodedText);
             } catch (err) {
-                const errMsg = err.message ? err.message : err;
-                alert("Uy! Error al procesar: " + errMsg);
+                alert("Error al procesar: " + (err.message || err));
                 resumeScanner();
             }
         };
 
-        html5QrcodeScanner.render(onScanSuccess, () => {});
-
-        /**
-         * Traductor Dinámico: Traduce al español los elementos internos de la librería html5-qrcode.
-         * Se encarga de botones de permisos, selección de cámara y modos de escaneo.
-         */
-        const translateScannerUI = () => {
-            const translations = {
-                "Request Camera Permissions": "Solicitar Permisos de Cámara",
-                "Scan an Image File": "Escanear Archivo de Imagen",
-                "Scan using camera directly": "Usar cámara directamente",
-                "Stop Scanning": "Detener Escaneo",
-                "Start Scanning": "Iniciar Escaneo",
-                "Select Camera": "Seleccionar Cámara",
-            };
-
-            const elements = document.querySelectorAll('#reader button, #reader a, #reader span, #reader label');
-            elements.forEach(el => {
-                const text = el.innerText.trim();
-                if (translations[text]) {
-                    el.innerText = translations[text];
-                }
+        // Arranca la cámara con el facingMode indicado
+        const startCamera = (facingMode) => {
+            currentFacingMode = facingMode;
+            return html5QrcodeScanner.start(
+                { facingMode },
+                scannerConfig,
+                onScanSuccess,
+                () => {} // fallos de lectura: silencioso
+            ).then(() => {
+                isScannerRunning = true;
+                updateToggleBtn();
+                // Comprobar si el dispositivo soporta linterna y mostrar el botón
+                try {
+                    const capabilities = html5QrcodeScanner.getRunningTrackCapabilities();
+                    const torchBtn = document.getElementById('btn-toggle-torch');
+                    if (capabilities && capabilities.torch && torchBtn) {
+                        torchBtn.classList.remove('d-none');
+                    }
+                } catch(e) { /* linterna no soportada */ }
+            }).catch(err => {
+                console.warn('Error al arrancar cámara:', err);
+                isScannerRunning = false;
+                updateToggleBtn();
             });
         };
 
-        // Observamos cambios en el lector para traducir botones que aparecen/desaparecen
-        const observer = new MutationObserver(translateScannerUI);
-        observer.observe(document.getElementById('reader'), { childList: true, subtree: true });
-        
-        // Ejecución inicial por si ya estuviera pintado
-        setTimeout(translateScannerUI, 100);
+        // Detiene la cámara limpiamente
+        const stopCamera = async () => {
+            if (isScannerRunning) {
+                try { await html5QrcodeScanner.stop(); } catch(e) {}
+                isScannerRunning = false;
+                isTorchOn = false;
+                updateToggleBtn();
+                // Ocultar y resetear el botón de linterna
+                const torchBtn = document.getElementById('btn-toggle-torch');
+                if (torchBtn) {
+                    torchBtn.classList.add('d-none');
+                    torchBtn.classList.remove('btn-warning');
+                    torchBtn.classList.add('btn-outline-warning');
+                    torchBtn.innerHTML = '<i class="bi bi-lightbulb"></i> Flash';
+                }
+            }
+        };
+
+        // --- Arranque automático con cámara trasera ---
+        startCamera("environment").catch(() => startCamera("user"));
+
+        // --- Botón: Detener / Iniciar ---
+        document.getElementById('btn-toggle-scanner')?.addEventListener('click', async () => {
+            if (isScannerRunning) {
+                await stopCamera();
+            } else {
+                await startCamera(currentFacingMode);
+            }
+        });
+
+        // --- Botón: Cambiar Cámara (frontal ↔ trasera) ---
+        document.getElementById('btn-switch-camera')?.addEventListener('click', async () => {
+            await stopCamera();
+            const newFacing = currentFacingMode === "environment" ? "user" : "environment";
+            await startCamera(newFacing);
+        });
+
+        // --- Botón: Linterna / Flash ---
+        document.getElementById('btn-toggle-torch')?.addEventListener('click', async () => {
+            if (!isScannerRunning) return;
+            isTorchOn = !isTorchOn;
+            try {
+                await html5QrcodeScanner.applyVideoConstraints({
+                    advanced: [{ torch: isTorchOn }]
+                });
+                const btn = document.getElementById('btn-toggle-torch');
+                if (btn) {
+                    if (isTorchOn) {
+                        btn.innerHTML = '<i class="bi bi-lightbulb-fill"></i> Flash ON';
+                        btn.classList.remove('btn-outline-warning');
+                        btn.classList.add('btn-warning');
+                    } else {
+                        btn.innerHTML = '<i class="bi bi-lightbulb"></i> Flash';
+                        btn.classList.remove('btn-warning');
+                        btn.classList.add('btn-outline-warning');
+                    }
+                }
+            } catch(e) {
+                console.warn('Linterna no disponible:', e);
+                isTorchOn = !isTorchOn; // revertir si falla
+            }
+        });
+
+        // --- Input: Escanear desde Imagen (Galería / Archivo) ---
+        document.getElementById('btn-scan-image-file')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            await stopCamera();
+            try {
+                const result = await html5QrcodeScanner.scanFile(file, false);
+                handleBarcodeScanned(result);
+            } catch (err) {
+                Swal.fire({
+                    title: 'No encontrado',
+                    text: 'No se pudo leer ningún código en esa imagen.',
+                    icon: 'warning',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            } finally {
+                // Reiniciamos cámara tras el escaneo de imagen
+                await startCamera(currentFacingMode);
+                e.target.value = ''; // Reset input para poder volver a usar el mismo archivo
+            }
+        });
 
     } catch (error) {
         alert("Error inicializando la cámara: " + error.message);
     }
-}
+};
+
+
 
 // Búsqueda Manual Avanzada (Predictiva)
 const manualSuggestions = document.getElementById('manual-suggestions');
