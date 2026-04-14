@@ -54,13 +54,15 @@
             <button id="btn-toggle-scanner" class="btn btn-sm btn-outline-danger rounded-pill px-3">
               <i class="bi bi-stop-circle"></i> Detener
             </button>
-            <button id="btn-toggle-torch" class="btn btn-sm btn-outline-warning rounded-pill px-3 d-none" title="Encender linterna">
+            <button id="btn-toggle-torch" class="btn btn-sm btn-outline-warning rounded-pill px-3 d-none"
+              title="Encender linterna">
               <i class="bi bi-lightbulb"></i> Flash
             </button>
-            <button id="btn-switch-camera" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <!-- <button id="btn-switch-camera" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
               <i class="bi bi-arrow-repeat"></i> Cambiar Cámara
-            </button>
-            <label class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-0" for="btn-scan-image-file" title="Escanear desde galería">
+            </button> -->
+            <label class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-0" for="btn-scan-image-file"
+              title="Escanear desde galería">
               <i class="bi bi-image"></i> Imagen
               <input type="file" id="btn-scan-image-file" accept="image/*" style="display:none;">
             </label>
@@ -241,7 +243,7 @@
   <div class="modal fade" id="inventoryModal" tabindex="-1" aria-labelledby="inventoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content border-0 shadow-lg rounded-4">
-        <div class="modal-header bg-dark text-white border-bottom-0 rounded-top-4">
+        <div class="modal-header bg-success text-white border-bottom-0 rounded-top-4">
           <h1 class="modal-title fs-5" id="inventoryModalLabel"><i class="bi bi-boxes"></i> Mi Catálogo Local</h1>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
@@ -417,15 +419,22 @@
               </h2>
               <div id="help-scan" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>La cámara trasera arranca <strong>automáticamente</strong> al abrir la App. Debajo del visor encontrarás los controles:</p>
+                  <p>La cámara trasera arranca <strong>automáticamente</strong> al abrir la App. Debajo del visor
+                    encontrarás los controles:</p>
                   <ul>
-                    <li><strong>⏹ Detener / ▶ Iniciar:</strong> Para la cámara cuando no la necesitas (ahorra batería) y la reanuda con un toque.</li>
-                    <li><strong>💡 Flash:</strong> Enciende la linterna para escanear en entornos oscuros. Solo disponible en Android.</li>
+                    <li><strong>⏹ Detener / ▶ Iniciar:</strong> Para la cámara cuando no la necesitas (ahorra batería) y
+                      la reanuda con un toque.</li>
+                    <li><strong>💡 Flash:</strong> Enciende la linterna para escanear en entornos oscuros. Solo
+                      disponible en Android.</li>
                     <li><strong>🔄 Cambiar Cámara:</strong> Alterna entre cámara trasera y frontal al instante.</li>
-                    <li><strong>🖼 Imagen:</strong> Elige una foto de tu galería y extrae el código sin usar la cámara en directo.</li>
-                    <li><strong>Pausa Inteligente:</strong> El escáner se pausa automáticamente tras cada lectura para que no dupliques artículos sin querer.</li>
+                    <li><strong>🖼 Imagen:</strong> Elige una foto de tu galería y extrae el código sin usar la cámara
+                      en directo.</li>
+                    <li><strong>Pausa Inteligente:</strong> El escáner se pausa automáticamente tras cada lectura para
+                      que no dupliques artículos sin querer.</li>
                   </ul>
-                  <div class="alert alert-info py-2 small"><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si el código no lee bien, prueba a alejar un poco el móvil para que enfoque mejor, o activa el Flash.</div>
+                  <div class="alert alert-info py-2 small"><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si el
+                    código no lee bien, prueba a alejar un poco el móvil para que enfoque mejor, o activa el Flash.
+                  </div>
                 </div>
               </div>
             </div>
@@ -483,13 +492,46 @@
               <div id="help-list" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                   <p>Crea tu lista de la compra desde casa usando el buscador predictivo o tu voz.</p>
+
+                  <p><strong>🎙️ Cómo usar el Dictado por Voz:</strong></p>
+                  <ol>
+                    <li>Pulsa el icono del <strong>micrófono azul</strong>.</li>
+                    <li>Di una <strong>palabra de activación</strong> seguida de tus productos.</li>
+                    <li>Separa siempre los productos con la palabra <strong>"y"</strong>.</li>
+                    <li>La App te confirmará en voz alta lo que ha añadido.</li>
+                  </ol>
+
+                  <p class="mb-1"><strong>Palabras de activación disponibles:</strong></p>
+                  <div class="d-flex flex-wrap gap-1 mb-3">
+                    <span class="badge bg-primary">añade</span>
+                    <span class="badge bg-primary">añadir</span>
+                    <span class="badge bg-primary">añádeme</span>
+                    <span class="badge bg-secondary">agrega</span>
+                    <span class="badge bg-secondary">agrégame</span>
+                    <span class="badge bg-secondary">pon</span>
+                    <span class="badge bg-secondary">necesito</span>
+                    <span class="badge bg-secondary">compra</span>
+                    <span class="badge bg-secondary">apunta</span>
+                    <span class="badge bg-secondary">apúntame</span>
+                    <span class="badge bg-secondary">incluye</span>
+                    <span class="badge bg-secondary">anota</span>
+                    <span class="badge bg-secondary">anótame</span>
+                    <span class="badge bg-secondary">mete</span>
+                    <span class="badge bg-secondary">méteme</span>
+                    <span class="badge bg-secondary">registra</span>
+                  </div>
+
+                  <div class="alert alert-success py-2 small mb-2">
+                    <i class="bi bi-check-circle-fill"></i> <strong>Ejemplo correcto:</strong><br>
+                    <em>"Añade pan <u>y</u> huevos <u>y</u> leche <u>y</u> detergente"</em>
+                  </div>
+                  <div class="alert alert-warning py-2 small mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <strong>Importante:</strong> Usa siempre <strong>"y"</strong> para separar los productos. Las pausas entre palabras <strong>no separan</strong> los artículos.
+                  </div>
+
                   <ul>
-                    <li><strong>🎙️ Dictado por Voz:</strong> Pulsa el icono del micrófono azul y di lo que necesites
-                      (ej: "Añade pan y leche"). La App separará los productos automáticamente y te confirmará
-                      con voz al terminar.</li>
-                    <li><strong>Truco del Súper:</strong> Al escanear un producto que tenías apuntado, la App lo
-                      reconocerá y lo <strong>tachará automáticamente</strong> de tu lista (siempre y cuando se haya
-                      seleccionado producto del catalogo).</li>
+                    <li><strong>Truco del Súper:</strong> Al escanear un producto apuntado en el bloc, la App lo
+                      <strong>tachará automáticamente</strong> (solo si fue seleccionado del catálogo).</li>
                   </ul>
                 </div>
               </div>

@@ -31,7 +31,7 @@ export const initShoppingListUI = () => {
 
     if (btnShoppingList) {
         btnShoppingList.addEventListener('click', () => {
-            if(!shoppingListModal) shoppingListModal = new bootstrap.Modal(shoppingListModalElement);
+            if (!shoppingListModal) shoppingListModal = new bootstrap.Modal(shoppingListModalElement);
             renderShoppingList();
             shoppingListModal.show();
         });
@@ -39,13 +39,13 @@ export const initShoppingListUI = () => {
 
     if (inputElement) {
         inputElement.addEventListener('input', handlePredictiveSearch);
-        
+
         // Atajo teclado: Enter para añadir Texto Libre Rápido
         inputElement.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
+            if (e.key === 'Enter') {
                 e.preventDefault();
                 const text = inputElement.value.trim();
-                if(text !== '') {
+                if (text !== '') {
                     addFreeTextItem(text);
                 }
             }
@@ -54,7 +54,7 @@ export const initShoppingListUI = () => {
 
     if (btnClear) {
         btnClear.addEventListener('click', () => {
-             Swal.fire({
+            Swal.fire({
                 title: '¿Limpiar el Bloc?',
                 text: 'Se borrarán todos los apuntes actuales.',
                 icon: 'warning',
@@ -62,12 +62,12 @@ export const initShoppingListUI = () => {
                 confirmButtonColor: '#dc3545',
                 confirmButtonText: 'Sí, vaciar',
                 cancelButtonText: 'Cancelar'
-             }).then((res) => {
-                 if(res.isConfirmed) {
-                     db.setShoppingList([]);
-                     renderShoppingList();
-                 }
-             });
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    db.setShoppingList([]);
+                    renderShoppingList();
+                }
+            });
         });
     }
 
@@ -75,8 +75,8 @@ export const initShoppingListUI = () => {
     if (itemsContainer) {
         itemsContainer.addEventListener('click', (e) => {
             const itemKey = e.target.closest('li')?.dataset.id;
-            if(!itemKey) return;
-            
+            if (!itemKey) return;
+
             // Si pulsa el botón de borrar (X pequeñita a la derecha)
             if (e.target.closest('.btn-delete-task')) {
                 e.stopPropagation(); // Para no disparar el check
@@ -91,7 +91,7 @@ export const initShoppingListUI = () => {
 
     if (btnVoice) {
         if (!recognition) {
-            btnVoice.style.display = 'none'; 
+            btnVoice.style.display = 'none';
         } else {
             btnVoice.addEventListener('click', startVoiceSession);
         }
@@ -104,14 +104,14 @@ export const initShoppingListUI = () => {
 const handlePredictiveSearch = (e) => {
     const query = e.target.value.toLowerCase().trim();
     suggestionsBox.innerHTML = '';
-    
+
     if (query === '') {
         suggestionsBox.classList.add('d-none');
         return;
     }
 
     const catalog = db.getProductsDB();
-    const matches = catalog.filter(p => 
+    const matches = catalog.filter(p =>
         p.name.toLowerCase().includes(query) || p.barcode.includes(query)
     ).slice(0, 5); // Tope visual por diseño para no empujar la UI
 
@@ -129,7 +129,7 @@ const handlePredictiveSearch = (e) => {
             suggestionsBox.appendChild(li);
         });
     }
-    
+
     // Siempre enseñamos el botón final de escape "Añadir como texto libre"
     suggestionsBox.classList.remove('d-none');
     const freeTextLi = document.createElement('li');
@@ -155,7 +155,7 @@ const addCatalogItem = (product) => {
         done: false
     });
     db.setShoppingList(list);
-    
+
     inputElement.value = '';
     suggestionsBox.classList.add('d-none');
     renderShoppingList();
@@ -175,7 +175,7 @@ const addFreeTextItem = (text) => {
         done: false
     });
     db.setShoppingList(list);
-    
+
     inputElement.value = '';
     suggestionsBox.classList.add('d-none');
     renderShoppingList();
@@ -189,7 +189,7 @@ const addFreeTextItem = (text) => {
 const toggleItemManualStatus = (id) => {
     const list = db.getShoppingList();
     const item = list.find(i => i.id === id);
-    if(item) {
+    if (item) {
         item.done = !item.done; // Invertir Estado Matemático
         db.setShoppingList(list);
         renderShoppingList();
@@ -212,11 +212,11 @@ const deleteItem = (id) => {
  * grises u opacos dependiendo de su estado matemático `done`.
  */
 export const renderShoppingList = () => {
-    if(!itemsContainer) return;
+    if (!itemsContainer) return;
     const list = db.getShoppingList();
-    
+
     itemsContainer.innerHTML = '';
-    
+
     if (list.length === 0) {
         emptyMsg.classList.remove('d-none');
         return;
@@ -227,12 +227,12 @@ export const renderShoppingList = () => {
     list.forEach(item => {
         const li = document.createElement('li');
         li.dataset.id = item.id;
-        
+
         let iconHtml = '';
         let decorationClass = '';
         let bgColor = '';
 
-        if(item.done) {
+        if (item.done) {
             iconHtml = `<i class="bi bi-check-circle-fill text-success fs-5 me-3"></i>`;
             decorationClass = 'text-decoration-line-through text-muted';
             bgColor = 'bg-light';
@@ -242,8 +242,8 @@ export const renderShoppingList = () => {
             bgColor = 'bg-white';
         }
 
-        const tagBadge = item.type === 'catalog' 
-            ? `<span class="badge bg-secondary ms-2 opacity-50 fw-normal border" style="font-size: 0.65rem;">Catálogo</span>` 
+        const tagBadge = item.type === 'catalog'
+            ? `<span class="badge bg-secondary ms-2 opacity-50 fw-normal border" style="font-size: 0.65rem;">Catálogo</span>`
             : ``;
 
         li.className = `list-group-item d-flex justify-content-between align-items-center ${bgColor}`;
@@ -280,9 +280,9 @@ export const syncAutoStrikethrough = (cart) => {
                 listItem.done = true; // Ta-chan! Techamos el item autmático
                 hasChanges = true;
             } else if (!inCart && listItem.done) {
-                 // Si lo retira del carro, el item de la lista debe despintarse para volver a estar "Pendiente"
-                 listItem.done = false;
-                 hasChanges = true;
+                // Si lo retira del carro, el item de la lista debe despintarse para volver a estar "Pendiente"
+                listItem.done = false;
+                hasChanges = true;
             }
         }
         // Los Textos Libres ('freetext') ignoran el Auto-Strikethrough para proteger la experiencia del usuario (lo pulsan manualmente si lo ven).
@@ -290,7 +290,7 @@ export const syncAutoStrikethrough = (cart) => {
 
     if (hasChanges) {
         db.setShoppingList(list);
-        if(itemsContainer) renderShoppingList(); // Re-render solo si mutó algo en background
+        if (itemsContainer) renderShoppingList(); // Re-render solo si mutó algo en background
     }
 };
 
@@ -304,7 +304,7 @@ const startVoiceSession = () => {
     try {
         recognition.start();
         btnVoice.classList.add('btn-voice-active');
-        
+
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             processVoiceTranscript(transcript);
@@ -325,14 +325,14 @@ const startVoiceSession = () => {
 
 /**
  * Procesa el texto capturado para extraer productos.
- * Soporta patrones como: "Añade manzanas, peras y plátanos".
+ * Soporta patrones como: "Añade manzanas y peras y plátanos".
  * @param {string} text - El texto crudo reconocido.
  */
 const processVoiceTranscript = (text) => {
     let cleanText = text.toLowerCase().trim();
-    
+
     // Lista de "palabras de acción" a eliminar al inicio
-    const stopWords = ['añade', 'agrega', 'pon', 'necesito', 'compra', 'apunta'];
+    const stopWords = ['añade', 'añadir', 'añádeme', 'agrega', 'agrégame', 'pon', 'necesito', 'compra', 'apunta', 'apúntame', 'incluye', 'incorpora', 'suma', 'anota', 'anótame', 'adjunta', 'mete', 'méteme', 'no olvides', 'me falta', 'hay que comprar', 'me apuntas','registra'];
     stopWords.forEach(word => {
         if (cleanText.startsWith(word)) {
             cleanText = cleanText.replace(word, '').trim();
@@ -354,14 +354,14 @@ const processVoiceTranscript = (text) => {
         });
         db.setShoppingList(list);
         renderShoppingList();
-        
+
         // Confirmación Auditiva
-        const confirmMsg = items.length === 1 
+        const confirmMsg = items.length === 1
             ? `Añadido ${items[0]} a la lista.`
             : `Añadidos ${items.length} artículos a la lista.`;
-        
+
         speakText(confirmMsg);
-        
+
         Swal.fire({
             title: '¡Oído cocina!',
             text: confirmMsg,

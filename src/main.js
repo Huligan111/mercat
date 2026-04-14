@@ -237,7 +237,7 @@ const initCameraScanner = () => {
                 const btn = document.getElementById('btn-toggle-torch');
                 if (btn) {
                     if (isTorchOn) {
-                        btn.innerHTML = '<i class="bi bi-lightbulb-fill"></i> Flash ON';
+                        btn.innerHTML = '<i class="bi bi-lightbulb-fill"></i> Flash OFF';
                         btn.classList.remove('btn-outline-warning');
                         btn.classList.add('btn-warning');
                     } else {
