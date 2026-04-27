@@ -357,16 +357,23 @@ if (manualBarcode && manualSuggestions) {
 // ARRANQUE (BOOTSTRAPPING DE LA APP)
 window.addEventListener('load', async () => {
     try {
+        // Bloquear orientación en portrait (funciona en PWA instalada y algunos navegadores móviles)
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('portrait').catch(() => {
+                // Silencioso: algunos navegadores no permiten bloquear sin gesto del usuario
+            });
+        }
+
         // 1. Migración de datos pesados (LocalStorage -> IndexedDB)
         await db.migrateReceiptsToIDB();
 
         initCartUI();
-        initInventoryUI(openProductModalForEdit, setupModalForNew);    // Inyectamos dependencias cruzadas (Editar y Añadir)
-        initProductModalUI(resumeScanner);           // Inyectamos función para despertar escáner
-        initHistoryUI();                             // Registramos el Módulo del Historial (Chart.js y Modal)
-        initShoppingListUI();                        // Registramos el Bloc de Notas Predictivo
-        initCropperUI();                             // Registramos el Escáner de Tiquets (Recorte)
-        initHelpUI();                                // Registramos el Centro de Ayuda Visual
+        initInventoryUI(openProductModalForEdit, setupModalForNew);
+        initProductModalUI(resumeScanner);
+        initHistoryUI();
+        initShoppingListUI();
+        initCropperUI();
+        initHelpUI();
 
         renderCart(); 
         initCameraScanner(); 

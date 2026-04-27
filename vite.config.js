@@ -21,9 +21,10 @@ export default defineConfig({
         name: 'Mercat App',
         short_name: 'Mercat',
         description: 'Tu asistente de compras de supermercado.',
-        theme_color: '#ffffff', // Fondo principal de las cejas del teléfono
-        background_color: '#f8f9fa', // Color de arranque
-        display: 'standalone', // Obligatorio para esconder barra de navegador (Disfrazarse de App Nativa)
+        theme_color: '#ffffff',
+        background_color: '#f8f9fa',
+        display: 'standalone',
+        orientation: 'portrait', // Bloquea la rotación en modo App instalada
         icons: [
           {
             src: 'icon.png',
