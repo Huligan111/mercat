@@ -357,12 +357,19 @@ if (manualBarcode && manualSuggestions) {
 // ARRANQUE (BOOTSTRAPPING DE LA APP)
 window.addEventListener('load', async () => {
     try {
-        // Bloquear orientación en portrait (funciona en PWA instalada y algunos navegadores móviles)
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('portrait').catch(() => {
-                // Silencioso: algunos navegadores no permiten bloquear sin gesto del usuario
-            });
-        }
+        // Intentar bloquear orientación en portrait
+        const lockOrientation = () => {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('portrait').catch(() => {
+                    // Algunos navegadores requieren pantalla completa o gesto del usuario
+                });
+            }
+        };
+
+        lockOrientation();
+        // Reintentar tras el primer toque del usuario (requerido por muchos navegadores)
+        document.body.addEventListener('touchstart', lockOrientation, { once: true });
+        document.body.addEventListener('click', lockOrientation, { once: true });
 
         // 1. Migración de datos pesados (LocalStorage -> IndexedDB)
         await db.migrateReceiptsToIDB();
