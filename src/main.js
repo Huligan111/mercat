@@ -2,7 +2,7 @@
  * Controlador Principal (Orquestador).
  * Une la UI con el Escáner y la Lógica del Carrito.
  */
-import './style.css'; 
+import './style.css';
 import 'cropperjs/dist/cropper.css';
 import * as db from './storage.js';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
@@ -42,7 +42,7 @@ const playSuccessSound = () => {
  */
 const handleBarcodeScanned = (decodedText) => {
     playSuccessSound();
-    
+
     let searchBarcode = decodedText;
     let injectedPrice = null;
 
@@ -70,36 +70,36 @@ const handleBarcodeScanned = (decodedText) => {
 
     // Buscar si el producto existe con la cadena de EAN13 limpia
     let product = db.findProductByBarcode(searchBarcode);
-    
-    if (product) {
-       // PASO POSITIVO: Clona y Modifica el precio si viene inyectado por QR Dinámico
-       if (injectedPrice !== null) {
-           product = { ...product }; // Clon profundo rápido
-           product.price = injectedPrice;
-           product.isVariablePrice = true; // Flag para que el carrito lo divida en fila propia
-       }
 
-       db.addToCart(product);
-       renderCart();
-       
-       Swal.fire({
-           title: product.name,
-           html: `Añadido a <strong style="font-size: 1.8rem; display: block; margin-top: 10px; color: #198754;">${product.price.toFixed(2)} €</strong>`,
-           icon: 'success',
-           timer: 2000,
-           timerProgressBar: true,
-           showConfirmButton: false,
-           backdrop: `rgba(0,0,0,0.5)`,
-           position: 'center'
-       });
-       
-       // Reanudar cámara sola
-       setTimeout(() => resumeScanner(), 2000);
-       
+    if (product) {
+        // PASO POSITIVO: Clona y Modifica el precio si viene inyectado por QR Dinámico
+        if (injectedPrice !== null) {
+            product = { ...product }; // Clon profundo rápido
+            product.price = injectedPrice;
+            product.isVariablePrice = true; // Flag para que el carrito lo divida en fila propia
+        }
+
+        db.addToCart(product);
+        renderCart();
+
+        Swal.fire({
+            title: product.name,
+            html: `Añadido a <strong style="font-size: 1.8rem; display: block; margin-top: 10px; color: #198754;">${product.price.toFixed(2)} €</strong>`,
+            icon: 'success',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            backdrop: `rgba(0,0,0,0.5)`,
+            position: 'center'
+        });
+
+        // Reanudar cámara sola
+        setTimeout(() => resumeScanner(), 2000);
+
     } else {
-       // PASO NEGATIVO: forzar modal creación con EAN-13 limpio y precio pre-rellenado (si existe)
-       // Se envía injectedPrice si fue descubierto en el QR!
-       setupModalForNew(searchBarcode, injectedPrice);
+        // PASO NEGATIVO: forzar modal creación con EAN-13 limpio y precio pre-rellenado (si existe)
+        // Se envía injectedPrice si fue descubierto en el QR!
+        setupModalForNew(searchBarcode, injectedPrice);
     }
 };
 
@@ -155,7 +155,7 @@ const initCameraScanner = () => {
 
         const onScanSuccess = (decodedText) => {
             try {
-                try { html5QrcodeScanner.pause(true); } catch(err) {}
+                try { html5QrcodeScanner.pause(true); } catch (err) { }
                 handleBarcodeScanned(decodedText);
             } catch (err) {
                 alert("Error al procesar: " + (err.message || err));
@@ -170,7 +170,7 @@ const initCameraScanner = () => {
                 { facingMode },
                 scannerConfig,
                 onScanSuccess,
-                () => {} // fallos de lectura: silencioso
+                () => { } // fallos de lectura: silencioso
             ).then(() => {
                 isScannerRunning = true;
                 updateToggleBtn();
@@ -181,7 +181,7 @@ const initCameraScanner = () => {
                     if (capabilities && capabilities.torch && torchBtn) {
                         torchBtn.classList.remove('d-none');
                     }
-                } catch(e) { /* linterna no soportada */ }
+                } catch (e) { /* linterna no soportada */ }
             }).catch(err => {
                 console.warn('Error al arrancar cámara:', err);
                 isScannerRunning = false;
@@ -192,7 +192,7 @@ const initCameraScanner = () => {
         // Detiene la cámara limpiamente
         const stopCamera = async () => {
             if (isScannerRunning) {
-                try { await html5QrcodeScanner.stop(); } catch(e) {}
+                try { await html5QrcodeScanner.stop(); } catch (e) { }
                 isScannerRunning = false;
                 isTorchOn = false;
                 updateToggleBtn();
@@ -246,7 +246,7 @@ const initCameraScanner = () => {
                         btn.classList.add('btn-outline-warning');
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.warn('Linterna no disponible:', e);
                 isTorchOn = !isTorchOn; // revertir si falla
             }
@@ -302,15 +302,15 @@ if (manualForm) {
 if (manualBarcode && manualSuggestions) {
     manualBarcode.addEventListener('input', (e) => {
         const query = e.target.value.trim().toLowerCase();
-        
+
         if (query.length === 0) {
             manualSuggestions.classList.add('d-none');
             return;
         }
 
         const allProducts = db.getProductsDB();
-        const matches = allProducts.filter(p => 
-            p.name.toLowerCase().includes(query) || 
+        const matches = allProducts.filter(p =>
+            p.name.toLowerCase().includes(query) ||
             p.barcode.includes(query)
         ).slice(0, 6); // Limite razonable
 
@@ -357,20 +357,6 @@ if (manualBarcode && manualSuggestions) {
 // ARRANQUE (BOOTSTRAPPING DE LA APP)
 window.addEventListener('load', async () => {
     try {
-        // Intentar bloquear orientación en portrait
-        const lockOrientation = () => {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('portrait').catch(() => {
-                    // Algunos navegadores requieren pantalla completa o gesto del usuario
-                });
-            }
-        };
-
-        lockOrientation();
-        // Reintentar tras el primer toque del usuario (requerido por muchos navegadores)
-        document.body.addEventListener('touchstart', lockOrientation, { once: true });
-        document.body.addEventListener('click', lockOrientation, { once: true });
-
         // 1. Migración de datos pesados (LocalStorage -> IndexedDB)
         await db.migrateReceiptsToIDB();
 
@@ -382,8 +368,8 @@ window.addEventListener('load', async () => {
         initCropperUI();
         initHelpUI();
 
-        renderCart(); 
-        initCameraScanner(); 
+        renderCart();
+        initCameraScanner();
     } catch (e) {
         alert("Fallo crítico en el inicio: " + e.message);
     }

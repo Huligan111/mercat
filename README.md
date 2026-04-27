@@ -16,7 +16,7 @@ Aplicación Web *Mobile-First* diseñada para llevar el control de tus compras e
 *   **🚨 Cúpula de Presupuesto**: Márcate un tope de gasto al entrar al súper. La contabilidad pulsará en un rojo agresivo cuando traspases la barrera para proteger tus ahorros.
 *   **🔎 Búsqueda Instantánea**: Busca en milisegundos entre tus productos guardados por código o nombre gracias al buscador dinámico *en vivo*.
 *   **💻 Sincronización Bloc-Escáner**: El autocompletado localizará tus productos del Catálogo en tu lista de notas, ¡y según vayas pasándolos por la cámara se **tacharán automáticamente**!
-*   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una App Nativa. Incluye **bloqueo de orientación vertical (Portrait Lock)** para evitar rotaciones accidentales mientras escaneas en el supermercado.
+*   **📱 Diseño 100% Mobile**: Botones grandes, footer congelado siempre visible, animaciones Bootstrap Native e interfaz limpia similar a una App Nativa.
 *   **🤳 Captura Flexible**: ¿Se te olvidó hacer la foto al pagar? No hay problema. Puedes adjuntar la imagen de tu tiquet más tarde directamente desde el historial de gastos.
 *   **🎨 Alertas Animadas Premium**: Integración de notificaciones sutiles con SweetAlert2.
 *   **✏️ Gestión CRUD Total**: Edita nombres, altera precios si han subido/bajado o borra elementos del catálogo con un clic.
