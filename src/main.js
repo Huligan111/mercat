@@ -17,6 +17,18 @@ import { initShoppingListUI } from './ui/shoppingList.js';
 import { initCropperUI } from './ui/cropperUI.js';
 import { initHelpUI } from './ui/helpUI.js';
 
+// Forzar orientación vertical fija (PWA)
+const lockPortrait = () => {
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(() => {});
+    }
+};
+lockPortrait();
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') lockPortrait();
+});
+window.addEventListener('click', lockPortrait, { once: true });
+
 // Elementos de la entrada manual
 const manualForm = document.getElementById('manual-form');
 const manualBarcode = document.getElementById('manual-barcode');
