@@ -24,6 +24,7 @@ export default defineConfig({
         theme_color: '#ffffff', // Fondo principal de las cejas del teléfono
         background_color: '#f8f9fa', // Color de arranque
         display: 'standalone', // Obligatorio para esconder barra de navegador (Disfrazarse de App Nativa)
+        orientation: 'portrait', // Bloquea la orientación en vertical como en Mercat_front
         icons: [
           {
             src: 'icon.png',
@@ -40,6 +41,8 @@ export default defineConfig({
     })
   ],
   build: {
+    outDir: 'docs', // Salida directa a la carpeta docs para GitHub Pages
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         // Separa las librerías pesadas en fragmentos únicos para no saturar a Vite con advertencias de 500kB
