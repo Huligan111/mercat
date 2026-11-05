@@ -17,6 +17,7 @@ import { initShoppingListUI } from './ui/shoppingList.js';
 import { initCropperUI } from './ui/cropperUI.js';
 import { initHelpUI } from './ui/helpUI.js';
 import { initBackupUI } from './ui/backupUI.js';
+import { initBulkModalUI } from './ui/bulkModal.js';
 
 // Forzar orientación vertical fija (PWA)
 const lockPortrait = () => {
@@ -374,6 +375,7 @@ window.addEventListener('load', async () => {
         await db.migrateReceiptsToIDB();
 
         initCartUI(openProductModalForEdit);
+        initBulkModalUI(renderCart);
         initInventoryUI(openProductModalForEdit, setupModalForNew);
         initProductModalUI(resumeScanner);
         initHistoryUI();

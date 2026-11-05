@@ -89,7 +89,10 @@
       <div class="card shadow-sm border-0 rounded-3 mb-5">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
           <h5 class="mb-0 text-secondary"><i class="bi bi-bag"></i> Tu Lista</h5>
-          <div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-success shadow-sm fw-bold" id="btn-open-bulk-modal" title="Calculadora de productos a granel o peso">
+              <i class="bi bi-basket2-fill"></i> A Granel
+            </button>
             <button class="btn btn-sm btn-outline-danger shadow-sm fw-bold" id="btn-clear-cart">
               <i class="bi bi-trash"></i> Vaciar Carrito
             </button>
@@ -385,6 +388,83 @@
           <button type="button" class="btn btn-success fw-bold px-4 shadow-sm" id="btn-crop-confirm">
             <i class="bi bi-check-all"></i> Listo
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Novedad: Modal Bootstrap de CALCULADORA DE PRODUCTOS A GRANEL (PESO) -->
+  <div class="modal fade" id="bulkProductModal" tabindex="-1" aria-labelledby="bulkProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-success text-white border-bottom-0 rounded-top-4">
+          <h5 class="modal-title" id="bulkProductModalLabel">
+            <i class="bi bi-basket2-fill me-1"></i> Producto a Granel
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="bulk-product-form">
+            <!-- Campo 1: Nombre del producto -->
+            <div class="mb-3">
+              <label for="bulk-name" class="form-label text-secondary fw-semibold small text-uppercase">Nombre del Producto</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                <input type="text" class="form-control" id="bulk-name" placeholder="Ej. Plátanos, Tomates pera..." required autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" id="btn-voice-bulk-name" title="Dictar nombre por voz">
+                  <i class="bi bi-mic"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Campo 2: Precio por kilo (€/kg) -->
+            <div class="mb-3">
+              <label for="bulk-price-kg" class="form-label text-secondary fw-semibold small text-uppercase">Precio por Kilo (€/kg)</label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light text-muted fw-bold">€/kg</span>
+                <input type="number" class="form-control" id="bulk-price-kg" placeholder="0.00" step="0.01" min="0" required>
+                <button class="btn btn-outline-secondary" type="button" id="btn-voice-bulk-price" title="Dictar precio por voz">
+                  <i class="bi bi-mic"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Campo 3: Peso (kg / g) -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="bulk-weight" class="form-label text-secondary fw-semibold small text-uppercase mb-0">Peso de la Bolsa</label>
+                <!-- Switch o selector de unidad: kg o g -->
+                <div class="btn-group btn-group-sm" role="group" id="bulk-unit-selector">
+                  <input type="radio" class="btn-check" name="bulk-unit" id="bulk-unit-kg" value="kg" checked>
+                  <label class="btn btn-outline-success" for="bulk-unit-kg">kg</label>
+
+                  <input type="radio" class="btn-check" name="bulk-unit" id="bulk-unit-g" value="g">
+                  <label class="btn btn-outline-success" for="bulk-unit-g">gramos (g)</label>
+                </div>
+              </div>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light text-muted fw-bold" id="bulk-unit-label">kg</span>
+                <input type="number" class="form-control" id="bulk-weight" placeholder="Ej. 1.250" step="0.001" min="0" required>
+                <button class="btn btn-outline-secondary" type="button" id="btn-voice-bulk-weight" title="Dictar peso por voz">
+                  <i class="bi bi-mic"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tarjeta con Cálculo en tiempo real -->
+            <div class="card bg-light border-0 shadow-sm p-3 rounded-3 mb-3 text-center">
+              <small class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Importe Calculado</small>
+              <h2 class="mb-0 fw-bold text-success" id="bulk-calculated-total">0.00 €</h2>
+              <small class="text-muted" id="bulk-calculation-detail">Introduce precio y peso para calcular</small>
+            </div>
+
+            <!-- Botón de Añadir a la Compra -->
+            <div class="d-grid">
+              <button type="submit" class="btn btn-success btn-lg rounded-pill shadow fw-bold" id="btn-bulk-submit">
+                <i class="bi bi-cart-plus-fill me-1"></i> Añadir a la Compra
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
