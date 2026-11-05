@@ -12,10 +12,11 @@ import Swal from 'sweetalert2';
 import { initCartUI, renderCart } from './ui/cart.js';
 import { initInventoryUI } from './ui/inventory.js';
 import { initProductModalUI, setupModalForNew, openProductModalForEdit } from './ui/productModal.js';
-import { initHistoryUI } from './ui/history.js';
+import { initHistoryUI, renderHistory } from './ui/history.js';
 import { initShoppingListUI } from './ui/shoppingList.js';
 import { initCropperUI } from './ui/cropperUI.js';
 import { initHelpUI } from './ui/helpUI.js';
+import { initBackupUI } from './ui/backupUI.js';
 
 // Forzar orientación vertical fija (PWA)
 const lockPortrait = () => {
@@ -379,6 +380,10 @@ window.addEventListener('load', async () => {
         initShoppingListUI();
         initCropperUI();
         initHelpUI();
+        initBackupUI(async () => {
+            renderCart();
+            await renderHistory();
+        });
 
         renderCart();
         initCameraScanner();

@@ -381,3 +381,88 @@ export const getShoppingList = () => getStorage(SHOPPING_LIST_KEY, []);
 
 export const setShoppingList = (list) => setStorage(SHOPPING_LIST_KEY, list);
 
+// ==========================================
+// COPIA DE SEGURIDAD TOTAL (BACKUP & RESTORE)
+// ==========================================
+
+/**
+ * Recopila todos los datos de la aplicación (catálogo, historial con fotos, presupuesto, notas y carrito).
+ * @returns {Promise<Object>} Estructura completa con todos los datos portables.
+ */
+export const getFullBackupData = async () => {
+    const receipts = await getReceipts();
+    return {
+        type: 'mercat_full_backup',
+        version: 2,
+        createdAt: new Date().toISOString(),
+        products: getProductsDB(),
+        receipts: receipts,
+        budget: getBudget(),
+        shoppingList: getShoppingList(),
+        cart: getCart()
+    };
+};
+
+/**
+ * Restaura una copia de seguridad completa inyectando productos, tiquets con fotos,
+ * presupuesto y bloc de notas en el almacenamiento del navegador.
+ * @param {Object} backup - El objeto parseado de la copia de seguridad.
+ * @returns {Promise<{ productsCount: number, receiptsCount: number }>}
+ */
+export const restoreFullBackupData = async (backup) => {
+    if (!backup || typeof backup !== 'object') {
+        throw new Error("El archivo no tiene un formato válido.");
+    }
+
+    let productsCount = 0;
+    let receiptsCount = 0;
+
+    // 1. Compatibilidad: si el usuario sube un catálogo simple (array directo)
+    if (Array.isArray(backup)) {
+        productsCount = importProducts(backup);
+        return { productsCount, receiptsCount: 0 };
+    }
+
+    // 2. Restaurar productos del catálogo
+    if (Array.isArray(backup.products)) {
+        productsCount = importProducts(backup.products);
+    }
+
+    // 3. Restaurar tiquets del historial con sus imágenes en IndexedDB
+    if (Array.isArray(backup.receipts) && backup.receipts.length > 0) {
+        const db = await openDB();
+        const transaction = db.transaction(IDB_STORE, 'readwrite');
+        const store = transaction.objectStore(IDB_STORE);
+
+        for (const r of backup.receipts) {
+            const receiptItem = {
+                id: r.id || Date.now(),
+                date: r.date || new Date().toISOString(),
+                total: typeof r.total === 'number' ? r.total : (parseFloat(r.total) || 0),
+                itemsCount: r.itemsCount || (r.items ? r.items.length : 0),
+                items: Array.isArray(r.items) ? r.items : [],
+                image: r.image || null
+            };
+            store.put(receiptItem);
+            receiptsCount++;
+        }
+
+        await new Promise((resolve, reject) => {
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+        });
+    }
+
+    // 4. Restaurar presupuesto si viene definido
+    if (backup.budget !== undefined && backup.budget !== null) {
+        setBudget(parseFloat(backup.budget) || 0);
+    }
+
+    // 5. Restaurar lista de compras si viene definida
+    if (Array.isArray(backup.shoppingList) && backup.shoppingList.length > 0) {
+        setShoppingList(backup.shoppingList);
+    }
+
+    return { productsCount, receiptsCount };
+};
+
