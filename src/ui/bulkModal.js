@@ -9,7 +9,7 @@ import * as db from '../storage.js';
 import * as bootstrap from 'bootstrap';
 import Swal from 'sweetalert2';
 
-// Diccionario de números hablados en castellano
+// Diccionario de números hablados en castellano con soporte para miles y variaciones fonéticas
 const SPANISH_NUMBER_WORDS = {
     'cero': 0, 'medio': 0.5, 'un': 1, 'uno': 1, 'una': 1, 'dos': 2, 'tres': 3, 'cuatro': 4,
     'cinco': 5, 'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10,
@@ -20,23 +20,19 @@ const SPANISH_NUMBER_WORDS = {
     'veintiseis': 26, 'veintiséis': 26, 'veintisiete': 27, 'veintiocho': 28, 'veintinueve': 29,
     'treinta': 30, 'cuarenta': 40, 'cincuenta': 50, 'sesenta': 60, 'setenta': 70,
     'ochenta': 80, 'noventa': 90,
-    'cien': 100, 'ciento': 100, 'doscientos': 200, 'trescientos': 300,
-    'cuatrocientos': 400, 'quinientos': 500, 'seiscientos': 600,
-    'setecientos': 700, 'ochocientos': 800, 'novecientos': 900
+    'cien': 100, 'ciento': 100,
+    'dosciento': 200, 'doscientos': 200,
+    'treciento': 300, 'trecientos': 300, 'tresciento': 300, 'trescientos': 300,
+    'cuatrociento': 400, 'cuatrocientos': 400,
+    'quiniento': 500, 'quinientos': 500,
+    'seisciento': 600, 'seiscientos': 600,
+    'seteciento': 700, 'setecientos': 700,
+    'ochociento': 800, 'ochocientos': 800,
+    'noveciento': 900, 'novecientos': 900,
+    'mil': 1000
 };
 
-/**
- * Convierte una frase de texto que expresa números en palabras a valor numérico flotante.
- * Ej: "uno con noventa y nueve" -> 1.99
- * @param {string} phrase 
- * @returns {number}
- */
-const wordsToNumber = (phrase) => {
-    const tokens = phrase.toLowerCase()
-        .replace(/[,.]/g, '')
-        .split(/\s+/)
-        .filter(t => t !== 'y' && t !== 'de');
-
+const simpleWordsToNumber = (tokens) => {
     let total = 0;
     for (const word of tokens) {
         if (/^\d+(\.\d+)?$/.test(word)) {
@@ -46,6 +42,31 @@ const wordsToNumber = (phrase) => {
         }
     }
     return total;
+};
+
+/**
+ * Convierte una frase de texto que expresa números en palabras a valor numérico flotante.
+ * Maneja miles y composiciones: "mil trescientos" -> 1300, "uno con noventa y nueve" -> 1.99.
+ * @param {string} phrase 
+ * @returns {number}
+ */
+const wordsToNumber = (phrase) => {
+    const tokens = phrase.toLowerCase()
+        .replace(/[,.]/g, ' ')
+        .split(/\s+/)
+        .filter(t => t && t !== 'y' && t !== 'de');
+
+    if (tokens.includes('mil')) {
+        const milIndex = tokens.indexOf('mil');
+        const beforeMil = tokens.slice(0, milIndex);
+        const afterMil = tokens.slice(milIndex + 1);
+
+        const thousands = beforeMil.length === 0 ? 1 : simpleWordsToNumber(beforeMil);
+        const remainder = simpleWordsToNumber(afterMil);
+        return (thousands || 1) * 1000 + remainder;
+    }
+
+    return simpleWordsToNumber(tokens);
 };
 
 /**
@@ -72,7 +93,7 @@ export const parseVoicePrice = (rawTranscript) => {
     }
 
     // Caso dígito solo (ej. "2")
-    const singleDigit = t.match(/\b(\d+)\b/);
+    const singleDigit = t.match(/^(\d+)$/);
     if (singleDigit) {
         return parseFloat(singleDigit[1]);
     }
@@ -96,62 +117,102 @@ export const parseVoicePrice = (rawTranscript) => {
 };
 
 /**
- * Parsea el peso dictado por voz en español, reconociendo si el usuario menciona kilos o gramos.
- * Ej: "cuatrocientos gramos", "un kilo y medio", "1 con 25", "750g".
+ * Parsea el peso dictado por voz en español, reconociendo combinaciones de kilos y gramos.
+ * Soporta:
+ * - "Kilo treciento" / "kilo trescientos" -> 1.3 kg
+ * - "Mil trecientos gramos" / "mil trescientos" -> 1300 g
+ * - "Un kilo y medio" -> 1.5 kg
+ * - "450 gramos" -> 450 g
+ * - "1 con 35" / "1.35" -> 1.35 kg
  * @param {string} rawTranscript 
  * @returns {{ value: number, unit: 'kg'|'g' }|null}
  */
 export const parseVoiceWeight = (rawTranscript) => {
     let t = rawTranscript.toLowerCase().trim();
-    let detectedUnit = null;
 
-    if (/\b(gramos?|g)\b/.test(t)) {
-        detectedUnit = 'g';
-        t = t.replace(/\b(gramos?|g)\b/g, '').trim();
-    } else if (/\b(kilos?|kg|kilo)\b/.test(t)) {
-        detectedUnit = 'kg';
-        t = t.replace(/\b(kilos?|kg|kilo)\b/g, '').trim();
-    }
+    // 1. Detección explícita de unidades mencionadas
+    const hasGrams = /\b(gramos?|gr|g)\b/.test(t);
+    const hasKilos = /\b(kilos?|kg|kilo)\b/.test(t);
 
-    // Casos especiales comunes en compras
-    if (t.includes('medio') && !t.includes('un kilo')) {
-        return { value: detectedUnit === 'g' ? 500 : 0.5, unit: detectedUnit || 'kg' };
-    }
-    if (t.includes('un kilo y medio') || t.includes('1 y medio')) {
+    // 2. Expresiones idiomáticas habituales en peso
+    if (t.includes('kilo y medio') || t.includes('un kilo y medio') || t.includes('1 y medio')) {
         return { value: 1.5, unit: 'kg' };
     }
-    if (t.includes('cuarto')) {
-        return { value: detectedUnit === 'g' ? 250 : 0.25, unit: detectedUnit || 'kg' };
+    if (t.includes('medio kilo')) {
+        return { value: 0.5, unit: 'kg' };
+    }
+    if (t.includes('cuarto de kilo') || t.includes('un cuarto')) {
+        return { value: 0.25, unit: 'kg' };
+    }
+    if (t.includes('tres cuartos')) {
+        return { value: 0.75, unit: 'kg' };
     }
 
-    // Dígito decimal directo tipo "1,25" o "1.25"
-    const digitMatch = t.match(/(\d+)[,\.](\d+)/);
-    if (digitMatch) {
-        const val = parseFloat(`${digitMatch[1]}.${digitMatch[2]}`);
-        return { value: val, unit: detectedUnit || (val > 20 ? 'g' : 'kg') };
+    // 3. Patrón compuesto: "[X] kilo(s) [Y]" (Ej: "kilo treciento", "kilo trescientos", "2 kilos cuatrocientos")
+    if (hasKilos && !hasGrams) {
+        const parts = t.split(/\b(?:kilos?|kg)\b/);
+        const beforeKilo = parts[0].trim();
+        const afterKilo = parts[1] ? parts[1].replace(/\b(y|con)\b/g, '').trim() : '';
+
+        const kiloAmount = beforeKilo ? wordsToNumber(beforeKilo) : 1;
+        const validKilo = kiloAmount > 0 ? kiloAmount : 1;
+
+        if (afterKilo) {
+            if (afterKilo.includes('medio')) {
+                return { value: validKilo + 0.5, unit: 'kg' };
+            }
+            const remainderNum = wordsToNumber(afterKilo);
+            if (remainderNum > 0) {
+                if (remainderNum >= 100) {
+                    // Ej: "kilo treciento" -> 1 + 300/1000 = 1.300 kg
+                    const totalVal = validKilo + (remainderNum / 1000);
+                    return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
+                } else if (remainderNum >= 10) {
+                    // Ej: "1 kilo 35" -> 1.35 kg
+                    const totalVal = validKilo + (remainderNum / 100);
+                    return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
+                } else {
+                    // Ej: "1 kilo 5" -> 1.5 kg
+                    const totalVal = validKilo + (remainderNum / 10);
+                    return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
+                }
+            }
+        } else {
+            return { value: validKilo, unit: 'kg' };
+        }
     }
 
-    // Dígito entero directo tipo "450" o "2"
-    const singleDigit = t.match(/\b(\d+)\b/);
-    if (singleDigit) {
-        const val = parseFloat(singleDigit[1]);
-        return { value: val, unit: detectedUnit || (val >= 50 ? 'g' : 'kg') };
+    // 4. Limpieza de palabras de unidad para parsear el número plano
+    t = t.replace(/\b(gramos?|gr|g|kilos?|kg)\b/g, '').trim();
+
+    // 5. Dígito decimal directo con coma o punto (Ej: "1,35" o "1.300")
+    const digitDecimalMatch = t.match(/(\d+)[,\.](\d+)/);
+    if (digitDecimalMatch) {
+        const val = parseFloat(`${digitDecimalMatch[1]}.${digitDecimalMatch[2]}`);
+        return { value: val, unit: hasGrams ? 'g' : (val >= 50 ? 'g' : 'kg') };
     }
 
-    // "X con Y"
+    // 6. Formato "X con Y" o "X coma Y" o "X punto Y"
     const splitRegex = /\b(con|coma|punto)\b/;
     if (splitRegex.test(t)) {
-        const parts = t.split(splitRegex);
-        const integerPart = wordsToNumber(parts[0]);
-        const decimalPart = wordsToNumber(parts[2]);
-        const val = parseFloat(`${integerPart}.${decimalPart}`);
-        return { value: val, unit: detectedUnit || 'kg' };
+        const p = t.split(splitRegex);
+        const intPart = wordsToNumber(p[0]);
+        const decPart = wordsToNumber(p[2]);
+        const val = parseFloat(`${intPart}.${decPart}`);
+        return { value: val, unit: hasGrams ? 'g' : 'kg' };
     }
 
-    // Palabras completas
-    const wordsNum = wordsToNumber(t);
-    if (wordsNum > 0) {
-        return { value: wordsNum, unit: detectedUnit || (wordsNum >= 50 ? 'g' : 'kg') };
+    // 7. Número plano en palabras o dígitos (Ej: "mil trecientos", "400", "trescientos")
+    const plainNum = wordsToNumber(t);
+    if (plainNum > 0) {
+        if (hasGrams) {
+            return { value: plainNum, unit: 'g' };
+        }
+        if (hasKilos) {
+            return { value: plainNum, unit: 'kg' };
+        }
+        // Si no especificó unidad y es >= 50 (ej. 300, 450, 1300), se interpreta como gramos
+        return { value: plainNum, unit: plainNum >= 50 ? 'g' : 'kg' };
     }
 
     return null;
@@ -425,11 +486,11 @@ export const initBulkModalUI = (onCartUpdated) => {
 
             const weightInKg = isGrams ? rawWeight / 1000 : rawWeight;
             const total = parseFloat((priceKg * weightInKg).toFixed(2));
-            const weightText = isGrams ? `${rawWeight}g` : `${weightInKg.toFixed(2).replace(/\.?0+$/, '')}kg`;
+            const weightText = isGrams ? `${rawWeight} g` : `${weightInKg.toFixed(3).replace(/\.?0+$/, '')} kg`;
 
             const bulkItem = {
                 barcode: `granel_${Date.now()}`,
-                name: `${name} (${weightText} @ ${priceKg.toFixed(2)}€/kg)`,
+                name: `${name} (${weightText} × ${priceKg.toFixed(2)} €/kg)`,
                 price: total,
                 quantity: 1,
                 isVariablePrice: true,
