@@ -12,7 +12,7 @@
   <!-- Iconos de Bootstrap para mejorar la UI (UX Premium) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <script type="module" crossorigin src="./assets/index-DRLl70to.js"></script>
+  <script type="module" crossorigin src="./assets/index-1yt7Eu6P.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor-scanner-Bem7aeur.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-sweetalert-CxryAhEz.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-bootstrap-D7Q7Nh7Y.js">
@@ -215,12 +215,38 @@
         </div>
         <div class="modal-body p-3">
 
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0 fw-bold text-secondary">Evolución</h6>
-            <select class="form-select form-select-sm w-auto shadow-sm" id="chart-mode-select">
-              <option value="meses">Mensual (Anual)</option>
-              <option value="dias">Diario (Este Mes)</option>
-            </select>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0 fw-bold text-secondary">Evolución</h6>
+              <select class="form-select form-select-sm w-auto shadow-sm" id="chart-mode-select">
+                <option value="meses">Mensual (Anual)</option>
+                <option value="dias">Diario (Este Mes)</option>
+                <option value="mes_concreto">Diario (Elegir Mes)</option>
+              </select>
+            </div>
+
+            <!-- Selector nativo de mes (visible solo al elegir 'Diario (Elegir Mes)') -->
+            <div id="month-picker-container" class="d-none mt-2 d-flex justify-content-between align-items-center bg-white p-2 rounded-3 border shadow-sm">
+              <span class="small text-secondary fw-semibold">
+                <i class="bi bi-calendar-month text-success me-1"></i> Mes a consultar:
+              </span>
+              <input type="month" id="chart-month-input" class="form-control form-control-sm w-auto shadow-sm">
+            </div>
+          </div>
+
+          <!-- Resumen destacado del Total del Período / Mes -->
+          <div id="chart-total-banner" class="card shadow-sm border-0 mb-3 rounded-3 p-3 bg-white border-start border-4 border-success">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <small class="text-muted text-uppercase fw-bold" id="chart-total-label" style="font-size: 0.72rem; letter-spacing: 0.5px;">Gasto Este Mes</small>
+                <h4 class="mb-0 fw-bold text-success" id="chart-total-amount">0.00 €</h4>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small" id="chart-total-badge">
+                  <i class="bi bi-bag-check-fill me-1"></i> <span id="chart-total-count">0 compras</span>
+                </span>
+              </div>
+            </div>
           </div>
 
           <!-- Lienzo de Gráfico -->
@@ -283,17 +309,17 @@
 
         <div class="modal-footer pb-3 pt-3 bg-light d-flex flex-column gap-2 rounded-bottom-4">
           <!-- Fila 1: Gestión de Catálogo de Productos -->
-          <div class="d-flex justify-content-center gap-1 w-100 flex-nowrap">
-            <button class="btn btn-sm btn-outline-secondary" id="btn-export-catalog" title="Exportar sólo catálogo de productos">
-              <i class="bi bi-file-earmark-arrow-down"></i> Catálogo
+          <div class="d-flex justify-content-between align-items-center w-100 gap-1 flex-nowrap">
+            <button class="btn btn-sm btn-outline-secondary px-2 flex-grow-1 text-truncate" id="btn-export-catalog" title="Descargar archivo con los productos del catálogo">
+              <i class="bi bi-file-earmark-arrow-down"></i> Exportar Prod.
             </button>
 
-            <button class="btn btn-sm btn-primary shadow-sm fw-bold px-3" id="btn-inventory-add-product">
+            <button class="btn btn-sm btn-primary shadow-sm fw-bold px-3 flex-shrink-0" id="btn-inventory-add-product" title="Añadir nuevo producto manual">
               <i class="bi bi-plus-lg"></i> Insertar
             </button>
 
-            <label class="btn btn-sm btn-outline-primary mb-0" for="btn-import-catalog" style="cursor: pointer;" title="Importar catálogo de productos">
-              <i class="bi bi-file-earmark-arrow-up"></i> Catálogo
+            <label class="btn btn-sm btn-outline-primary mb-0 px-2 flex-grow-1 text-truncate text-center" for="btn-import-catalog" style="cursor: pointer;" title="Cargar archivo con productos al catálogo">
+              <i class="bi bi-file-earmark-arrow-up"></i> Importar Prod.
               <input type="file" id="btn-import-catalog" accept=".json" style="display: none;">
             </label>
           </div>

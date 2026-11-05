@@ -11,6 +11,8 @@ import { startCropping } from './cropperUI.js';
  * Punteros DOM para el Módulo de Historial
  */
 let historyModalElement, btnHistory, chartModeSelect, canvasElement, receiptsList, emptyMsg;
+let monthPickerContainer, chartMonthInput, chartTotalBanner;
+let chartTotalAmount, chartTotalLabel, chartTotalCount;
 let historyModal = null;
 let viewTicketModal = null; // Nuevo modal visor de imagen
 let panzoomInstance = null; // Instancia de zoom para el tiquet
@@ -19,9 +21,6 @@ let expenseChart = null; // Guardará la instancia viva del gráfico en memoria 
 /**
  * Inicializa los eventos y enlaza los elementos UI para el Historial de Compras.
  * Esta función es orquestada desde main.js al cargar la primera vez la PWA.
- */
-/**
- * Inicializa los eventos y enlaza los elementos UI para el Historial de Compras.
  * Configura la delegación de eventos para borrar tickets, ver fotos con zoom y añadir fotos nuevas.
  */
 export const initHistoryUI = () => {
@@ -31,6 +30,18 @@ export const initHistoryUI = () => {
     canvasElement = document.getElementById('expenseChart');
     receiptsList = document.getElementById('receipts-list');
     emptyMsg = document.getElementById('empty-history-msg');
+    monthPickerContainer = document.getElementById('month-picker-container');
+    chartMonthInput = document.getElementById('chart-month-input');
+    chartTotalBanner = document.getElementById('chart-total-banner');
+    chartTotalAmount = document.getElementById('chart-total-amount');
+    chartTotalLabel = document.getElementById('chart-total-label');
+    chartTotalCount = document.getElementById('chart-total-count');
+
+    // Inicializamos el mes por defecto en el input (YYYY-MM)
+    if (chartMonthInput && !chartMonthInput.value) {
+        const now = new Date();
+        chartMonthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
 
     // Apertura del Panel de Historial
     if (btnHistory) {
@@ -41,11 +52,27 @@ export const initHistoryUI = () => {
         });
     }
 
-    // Cambio entre vista mensual y diaria de la gráfica
+    // Cambio entre vista mensual, diaria (este mes) o diario (mes concreto)
     if (chartModeSelect) {
         chartModeSelect.addEventListener('change', () => {
+            if (chartModeSelect.value === 'mes_concreto') {
+                if (monthPickerContainer) monthPickerContainer.classList.remove('d-none');
+            } else {
+                if (monthPickerContainer) monthPickerContainer.classList.add('d-none');
+            }
             renderChart(chartModeSelect.value);
         });
+    }
+
+    // Listener reactivo al cambiar el mes en el selector nativo
+    if (chartMonthInput) {
+        const handleMonthChange = () => {
+            if (chartModeSelect && chartModeSelect.value === 'mes_concreto') {
+                renderChart('mes_concreto');
+            }
+        };
+        chartMonthInput.addEventListener('change', handleMonthChange);
+        chartMonthInput.addEventListener('input', handleMonthChange);
     }
 
     // Delegación de eventos para interacción con tickets individuales (Borrar, Ver Foto, Añadir Foto)
@@ -180,12 +207,16 @@ export const renderHistory = async () => {
     const receipts = await db.getReceipts();
     
     if(receipts.length === 0) {
-        emptyMsg.classList.remove('d-none');
-        receiptsList.innerHTML = '';
+        if(emptyMsg) emptyMsg.classList.remove('d-none');
+        if(receiptsList) receiptsList.innerHTML = '';
         if(expenseChart) expenseChart.destroy();
+        if(canvasElement && canvasElement.parentElement) canvasElement.parentElement.classList.add('d-none');
+        if(chartTotalBanner) chartTotalBanner.classList.add('d-none');
         return;
     } else {
-        emptyMsg.classList.add('d-none');
+        if(emptyMsg) emptyMsg.classList.add('d-none');
+        if(canvasElement && canvasElement.parentElement) canvasElement.parentElement.classList.remove('d-none');
+        if(chartTotalBanner) chartTotalBanner.classList.remove('d-none');
     }
 
     // Renderizar lista (Orden descendente por fecha)
@@ -270,7 +301,7 @@ export const renderHistory = async () => {
 /**
  * Carga e inyecta la Gráfica de Negocio Chart.js dentro del Canvas.
  * Destruye la previa en memoria si la hay para evitar el famoso bug de WebGL.
- * @param {string} mode - 'meses' o 'dias' para alternar filtrado de cálculos
+ * @param {string} mode - 'meses', 'dias' o 'mes_concreto' para alternar filtrado de cálculos
  */
 const renderChart = async (mode) => {
     const receipts = await db.getReceipts();
@@ -278,6 +309,9 @@ const renderChart = async (mode) => {
 
     let labels = [];
     let dataSets = [];
+    let periodTotal = 0;
+    let periodCount = 0;
+    let periodTitle = '';
 
     const now = new Date();
 
@@ -289,13 +323,52 @@ const renderChart = async (mode) => {
             const d = new Date(r.date);
             if(d.getFullYear() === year) {
                 monthlyTotals[d.getMonth()] += r.total;
+                periodTotal += r.total;
+                periodCount++;
             }
         });
 
         labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         dataSets = monthlyTotals;
+        periodTitle = `Gasto Anual (${year})`;
+
+    } else if (mode === 'mes_concreto') {
+        let selectedVal = chartMonthInput ? chartMonthInput.value : '';
+        let targetYear, targetMonth;
+
+        if (selectedVal && selectedVal.includes('-')) {
+            const parts = selectedVal.split('-');
+            targetYear = parseInt(parts[0], 10);
+            targetMonth = parseInt(parts[1], 10) - 1; // base 0
+        } else {
+            targetYear = now.getFullYear();
+            targetMonth = now.getMonth();
+            if (chartMonthInput) {
+                chartMonthInput.value = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`;
+            }
+        }
+
+        const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+        const dailyTotals = new Array(daysInMonth).fill(0);
+        labels = Array.from({length: daysInMonth}, (_, i) => `${i + 1}`);
+
+        receipts.forEach(r => {
+            const d = new Date(r.date);
+            if(d.getFullYear() === targetYear && d.getMonth() === targetMonth) {
+                dailyTotals[d.getDate() - 1] += r.total;
+                periodTotal += r.total;
+                periodCount++;
+            }
+        });
+
+        dataSets = dailyTotals;
+        const targetDate = new Date(targetYear, targetMonth, 1);
+        const monthName = targetDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        const titleMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        periodTitle = `Gasto (${titleMonth})`;
 
     } else {
+        // Modo 'dias' (Este Mes)
         const month = now.getMonth();
         const year = now.getFullYear();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -307,11 +380,21 @@ const renderChart = async (mode) => {
             const d = new Date(r.date);
             if(d.getFullYear() === year && d.getMonth() === month) {
                 dailyTotals[d.getDate() - 1] += r.total;
+                periodTotal += r.total;
+                periodCount++;
             }
         });
         
         dataSets = dailyTotals;
+        const monthName = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        const titleMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        periodTitle = `Gasto Este Mes (${titleMonth})`;
     }
+
+    // Actualizamos el banner del total destacado
+    if (chartTotalAmount) chartTotalAmount.textContent = `${periodTotal.toFixed(2)} €`;
+    if (chartTotalLabel) chartTotalLabel.textContent = periodTitle;
+    if (chartTotalCount) chartTotalCount.textContent = `${periodCount} ${periodCount === 1 ? 'compra' : 'compras'}`;
 
     if(expenseChart) {
         expenseChart.destroy();
