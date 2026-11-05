@@ -572,7 +572,7 @@
               </div>
             </div>
 
-            <!-- Sección: GESTIÓN DE CESTA (NUEVA) -->
+            <!-- Sección: GESTIÓN DE CESTA (ACTUALIZADA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -582,11 +582,38 @@
               </h2>
               <div id="help-cart" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>La cesta ha sido optimizada para ser más rápida:</p>
+                  <p>La cesta te permite controlar tu compra en tiempo real:</p>
                   <ul>
-                    <li><strong>Último arriba (LIFO):</strong> El producto que acabas de escanear aparece siempre en la
+                    <li><strong>Último arriba (LIFO):</strong> El producto que acabas de escanear o añadir aparece siempre en la
                       primera fila. ¡No más scroll infinito en compras grandes!</li>
-                    <li><strong>Presupuesto:</strong> Si fijas un tope, el total cambiará a rojo cuando lo superes.</li>
+                    <li><strong>✏️ Botón Lápiz (Editar en Cesta):</strong> Justo debajo de la papelera en cada fila tienes un lápiz para modificar el precio o nombre del producto al vuelo si ha variado en la tienda.</li>
+                    <li><strong>Presupuesto (Cerdito 🐷):</strong> Fija un límite máximo y el total cambiará a rojo cuando lo superes.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: PRODUCTOS A GRANEL (PESO) -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#help-bulk">
+                  <i class="bi bi-basket2-fill me-2 text-success"></i> <strong>Productos a Granel (Peso)</strong>
+                </button>
+              </h2>
+              <div id="help-bulk" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p>Para frutas, verduras, panadería o legumbres que no tienen código de barras, pulsa el botón verde <strong>[ 🧺 Granel ]</strong> en la cabecera de Tu Lista.</p>
+                  <ul>
+                    <li><strong>Cálculo Automático:</strong> Introduce el <strong>Precio por Kilo (€/kg)</strong> y el <strong>Peso de la bolsa</strong> (puedes alternar entre <em>kg</em> o <em>gramos</em>). Verás el total calculado al instante.</li>
+                    <li><strong>🎙️ Dictado por Voz en cada campo:</strong> Cada input tiene su propio botón de micrófono para que no tengas que teclear con las manos ocupadas:
+                      <ul>
+                        <li><strong>Nombre:</strong> Pulsa el micro y di <em>"Plátanos de Canarias"</em> o <em>"Tomates pera"</em>.</li>
+                        <li><strong>Precio/kg:</strong> Di <em>"uno con noventa y nueve"</em> o <em>"dos euros con cincuenta"</em>.</li>
+                        <li><strong>Peso:</strong> Di <em>"kilo trescientos"</em>, <em>"un kilo y medio"</em>, <em>"450 gramos"</em> o <em>"1 con 25"</em>. La App detecta los kilos y gramos automáticamente.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Integración en Cesta:</strong> Se añade a tu lista con formato limpio (ej. <em>Plátanos (1.3 kg × 1.99 €/kg)</em>) y se suma a tu presupuesto.</li>
                   </ul>
                 </div>
               </div>
@@ -678,17 +705,17 @@
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                   data-bs-target="#help-history">
-                  <i class="bi bi-graph-up me-2 text-info"></i> <strong>Historial de Gastos</strong>
+                  <i class="bi bi-graph-up me-2 text-info"></i> <strong>Historial y Gráficas de Gastos</strong>
                 </button>
               </h2>
               <div id="help-history" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>Consulta tus compras pasadas y analiza cuánto dinero gastas al mes.</p>
+                  <p>Consulta tus compras pasadas y analiza la evolución de tus gastos:</p>
                   <ul>
-                    <li><strong>Gráfica Interactiva:</strong> Toca cualquier columna de la gráfica para ver el gasto
-                      total de ese día o mes. Los importes también se ven escritos arriba para mayor facilidad.</li>
-                    <li><strong>Detalle de Ticket:</strong> Pulsa sobre la fecha de un ticket para desplegar la lista de
-                      productos que compraste en esa ocasión.</li>
+                    <li><strong>Evolución Mensual o Diaria:</strong> Puedes ver las barras de gasto de todo el año o del mes en curso.</li>
+                    <li><strong>📅 Diario (Elegir Mes):</strong> Selecciona esta opción en el desplegable superior y podrás elegir con un calendario nativo cualquier mes pasado para ver su gráfica día a día.</li>
+                    <li><strong>Total del Período en Grande:</strong> Arriba del gráfico verás un panel destacado con el gasto total exacto del período seleccionado y cuántas compras realizaste.</li>
+                    <li><strong>Detalle de Ticket:</strong> Pulsa sobre cualquier ticket de la lista para desplegar los artículos comprados, ver la foto con zoom táctil (Panzoom) o añadir una foto nueva.</li>
                   </ul>
                 </div>
               </div>
@@ -755,24 +782,25 @@
               </div>
             </div>
 
-            <!-- Sección: SEGURIDAD (AMPLIADA) -->
+            <!-- Sección: SEGURIDAD Y COPIAS DE SEGURIDAD (AMPLIADA) -->
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                   data-bs-target="#help-data">
-                  <i class="bi bi-shield-check me-2 text-secondary"></i> <strong>Tus Datos y Privacidad</strong>
+                  <i class="bi bi-shield-check me-2 text-secondary"></i> <strong>Copias de Seguridad y Datos</strong>
                 </button>
               </h2>
               <div id="help-data" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                  <p>Mercat App funciona bajo la filosofía <strong>Local-First</strong>:</p>
+                  <p>Mercat App funciona bajo la filosofía <strong>Local-First</strong> (tus datos son 100% tuyos en tu dispositivo):</p>
                   <ul>
-                    <li>No guardamos nada en servidores; todo está en la memoria de tu teléfono.</li>
-                    <li>Si borras un ticket, se elimina su foto automáticamente para no ocupar espacio innecesario.</li>
-                    <li>Si borras el historial de Chrome en profundidad, podrías perder los datos. ¡Usa el botón de
-                      <strong>Exportar</strong> del Inventario como copia de seguridad!
-                    </li>
+                    <li><strong>💾 Copia Total (con Fotos):</strong> Disponible tanto en <em>Catálogo</em> como en <em>Historial</em>. Genera un archivo <code>.json</code> completo que incluye todos tus productos, notas, presupuesto, compras y las <strong>fotos íntegras de tus tiquets</strong>.</li>
+                    <li><strong>🔄 Restaurar Todo:</strong> Si cambias de teléfono o reinstalas la aplicación, pulsa este botón y selecciona tu copia para recuperar absolutamente todo en 1 segundo sin perder ni una sola foto.</li>
+                    <li><strong>📦 Exportar / Importar Prod.:</strong> En el Catálogo tienes botones exclusivos para compartir o respaldar únicamente la lista de productos y precios, sin incluir tiquets ni fotos.</li>
                   </ul>
+                  <div class="alert alert-info py-2 small mb-0">
+                    <i class="bi bi-info-circle"></i> <strong>Recomendación:</strong> Guarda periódicamente una <em>Copia Total</em> en tu nube (Google Drive) o envíatela por WhatsApp para tener siempre un respaldo seguro.
+                  </div>
                 </div>
               </div>
             </div>
