@@ -20,6 +20,7 @@ let newProductModal = null; // Instancia global en este file para el Componente 
 
 // Interruptor maestro: dicta si el submit hace un "Create" puro o hace un "Update".
 export let isEditingFromInventory = false; 
+export let editSource = null; // null | 'inventory' | 'cart' 
 
 // Sistema Callback: Cuando cerramos un formulario, tal vez necesitamos "Reanudar"
 // la cámara en el controlador principal. Esto lo conecta silenciosamente.
@@ -70,6 +71,7 @@ export const initProductModalUI = (onClose) => {
  */
 export const setupModalForNew = (barcodeText, injectedPrice = null) => {
     isEditingFromInventory = false; // Interruptor: MODO CREATE
+    editSource = null;
     
     // 1. Camuflaje Front-end (Textos, iconos e instrucciones adaptadas)
     modalTitleText.textContent = "Nuevo Producto";
@@ -91,9 +93,11 @@ export const setupModalForNew = (barcodeText, injectedPrice = null) => {
 /**
  * Mutabilidad visual a "Modo: Edición" (Cuando se usa el Lapicito azul)
  * @param {Object} product - La estructura JS pura del producto de nuestra base de datos.
+ * @param {string} source - Origen de la edición: 'inventory' | 'cart'
  */
-export const openProductModalForEdit = (product) => {
-    isEditingFromInventory = true; // Interruptor: MODO UPDATE
+export const openProductModalForEdit = (product, source = 'inventory') => {
+    isEditingFromInventory = (source === 'inventory'); // Interruptor retrocompatible
+    editSource = source; // 'inventory' | 'cart'
     
     // 1. Camuflaje Front-end 
     modalTitleText.textContent = "Editar Producto";
@@ -139,18 +143,17 @@ const handleSaveNewProduct = (event) => {
     db.saveOrUpdateProduct(newProduct, formOriginalBarcode.value || null);
     
     // 4. Lógica Derivada del Modo
-    if (!isEditingFromInventory) {
+    if (!editSource) {
        // A) Si fue escaneo nuevo de producto directo. Querremos meter la 1º unidad al carrito de compra real.
        db.addToCart(newProduct);
     } else {
-       // B) Si estás editando, el producto puede estar ya listado en el medio del Carrito (y ahora vale distinto).
-       // Truco Lógico: "Perseguirlo" en el Carrito para actualizarle visualmente su nuevo precio sin alterar su 'cantidad' actual!!
+       // B) Si estás editando (desde inventario o desde el carrito), actualizamos el Carrito con el nuevo precio/nombre
        let cart = db.getCart();
        const existingCartItem = cart.find(i => i.barcode === formOriginalBarcode.value || i.barcode === newProduct.barcode);
        if(existingCartItem) {
            existingCartItem.barcode = newProduct.barcode;
            existingCartItem.name = newProduct.name;
-           existingCartItem.price = newProduct.price; // ¡El Carrito pasa ahora a sumar con el precio nuevo mágico!
+           existingCartItem.price = newProduct.price; // ¡El Carrito pasa ahora a sumar con el precio nuevo!
            db.saveCart(cart); // Persistimos
        }
     }
@@ -160,8 +163,9 @@ const handleSaveNewProduct = (event) => {
     renderCart(); // Asegura el total recalcularlo
     
     // Extras de confort para fluidez visual: 
-    // Si usaste la edición, quiere decir que estabas mirando el Inventario de fondo...
-    if(isEditingFromInventory) {
+    // Si la edición vino del Inventario, reabrimos el Inventario para no perder el contexto.
+    // Si vino del Carrito, nos quedamos directamente en el Carrito listos para seguir.
+    if(editSource === 'inventory') {
         showInventoryModal(); // Se lo abrimos de nuevo amablemente
         renderInventory();    // ¡Repintado para que vea su nuevo precio reluciendo!
     }

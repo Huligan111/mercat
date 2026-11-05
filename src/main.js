@@ -372,7 +372,7 @@ window.addEventListener('load', async () => {
         // 1. Migración de datos pesados (LocalStorage -> IndexedDB)
         await db.migrateReceiptsToIDB();
 
-        initCartUI();
+        initCartUI(openProductModalForEdit);
         initInventoryUI(openProductModalForEdit, setupModalForNew);
         initProductModalUI(resumeScanner);
         initHistoryUI();

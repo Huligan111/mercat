@@ -14,6 +14,7 @@ import { startCropping } from './cropperUI.js';
 let cartItemsContainer, cartTotalElement, emptyCartMsg, btnClearCart, btnCheckout;
 let btnSetBudget, budgetDisplay, budgetAmountDisplay;
 let currentCartTotal = 0; // Guardará en RAM la suma para cuando el usuario presione Finalizar Compra
+let onEditProductCallback = null; // Callback para abrir modal de edición desde el carrito
 
 /**
  * Procesa la finalización de la compra.
@@ -126,8 +127,10 @@ const handleCheckout = async () => {
 /**
  * Inicializador principal del UI del Carrito.
  * Configura los elementos del DOM y asigna escuchadores de eventos globales.
+ * @param {Function} onEditProduct - Callback para abrir el modal de edición de producto
  */
-export const initCartUI = () => {
+export const initCartUI = (onEditProduct = null) => {
+    onEditProductCallback = onEditProduct;
     cartItemsContainer = document.getElementById('cart-items');
     cartTotalElement = document.getElementById('cart-total');
     emptyCartMsg = document.getElementById('empty-cart-msg');
@@ -259,11 +262,16 @@ export const renderCart = () => {
                 <!-- Muestra del subtotal redondeado a 2 decimales para evitar errores de coma flotante -->
                 ${itemSubtotal.toFixed(2)}€
             </td>
-            <td class="align-middle">
-                <!-- Botón eliminar sin bordes y color suave para no ensuciar la visual -->
-                <button class="btn btn-sm text-danger btn-delete border-0" data-id="${item.uniqueId || item.barcode}">
-                    <i class="bi bi-trash3 fs-5"></i>
-                </button>
+            <td class="align-middle text-center px-1">
+                <!-- Contenedor vertical: papelera arriba y lápiz de edición debajo -->
+                <div class="d-flex flex-column align-items-center justify-content-center gap-1">
+                    <button class="btn btn-sm text-danger btn-delete border-0 p-1" data-id="${item.uniqueId || item.barcode}" title="Eliminar del carrito">
+                        <i class="bi bi-trash3 fs-5"></i>
+                    </button>
+                    <button class="btn btn-sm text-primary btn-edit-cart-item border-0 p-1" data-id="${item.uniqueId || item.barcode}" data-barcode="${item.barcode}" title="Editar precio o nombre">
+                        <i class="bi bi-pencil-square fs-5"></i>
+                    </button>
+                </div>
             </td>
         `;
         // Lo anclamos físicamente a nuestro contenedor en el DOM
@@ -334,6 +342,21 @@ const attachCartButtonListeners = () => {
             const id = e.currentTarget.dataset.id;
             db.removeFromCart(id);
             renderCart();
+        });
+    });
+
+    // Escucha para editar el producto desde el carrito (lápiz debajo de la papelera)
+    document.querySelectorAll('.btn-edit-cart-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const barcode = e.currentTarget.dataset.barcode;
+            const uniqueId = e.currentTarget.dataset.id;
+            
+            // Localizamos el producto en la base de datos o directamente en el carrito
+            const product = db.findProductByBarcode(barcode) || db.getCart().find(i => (i.uniqueId || i.barcode) === uniqueId);
+            
+            if (product && onEditProductCallback) {
+                onEditProductCallback(product, 'cart');
+            }
         });
     });
 };
