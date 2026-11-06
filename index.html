@@ -179,19 +179,26 @@
             </div>
             <!-- Campo Nombre -->
             <div class="mb-3">
-              <label for="form-name" class="form-label text-secondary fw-semibold small text-uppercase">Nombre del
-                Producto</label>
-              <input type="text" class="form-control form-control-lg fs-5" id="form-name" placeholder="Ej. Manzanas 1kg"
-                required autocomplete="off">
+              <label for="form-name" class="form-label text-secondary fw-semibold small text-uppercase">Nombre del Producto</label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-tag"></i></span>
+                <input type="text" class="form-control fs-5" id="form-name" placeholder="Ej. Manzanas 1kg"
+                  required autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" id="btn-voice-product-name" title="Dictar nombre por voz">
+                  <i class="bi bi-mic"></i>
+                </button>
+              </div>
             </div>
             <!-- Campo Precio -->
             <div class="mb-4">
-              <label for="form-price" class="form-label text-secondary fw-semibold small text-uppercase">Precio
-                Unitario</label>
+              <label for="form-price" class="form-label text-secondary fw-semibold small text-uppercase">Precio Unitario</label>
               <div class="input-group input-group-lg">
-                <span class="input-group-text bg-light border-end-0 text-muted">€</span>
-                <input type="number" class="form-control border-start-0 fs-5" id="form-price" placeholder="0.00"
+                <span class="input-group-text bg-light text-muted">€</span>
+                <input type="number" class="form-control fs-5" id="form-price" placeholder="0.00"
                   step="0.01" min="0" required>
+                <button class="btn btn-outline-secondary" type="button" id="btn-voice-product-price" title="Dictar precio por voz">
+                  <i class="bi bi-mic"></i>
+                </button>
               </div>
             </div>
             <!-- Botón de Guardado -->
@@ -267,12 +274,13 @@
 
         </div>
 
-        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-center gap-2 flex-wrap rounded-bottom-4">
-          <button class="btn btn-sm btn-success fw-bold shadow-sm" id="btn-export-full-history" title="Exportar catálogo, presupuesto y tiquets con fotos">
-            <i class="bi bi-cloud-arrow-down-fill"></i> Copia Total (con Fotos)
+        <div class="modal-footer pb-3 pt-3 bg-light d-flex justify-content-center align-items-stretch gap-2 flex-wrap rounded-bottom-4">
+          <button class="btn btn-sm btn-success fw-bold shadow-sm px-3 text-center d-flex flex-column justify-content-center align-items-center" id="btn-export-full-history" title="Exportar catálogo, presupuesto y tiquets con fotos">
+            <span><i class="bi bi-cloud-arrow-down-fill me-1"></i> Copia Total</span>
+            <span class="fw-normal" style="font-size: 0.72rem; line-height: 1.1;">(con fotos)</span>
           </button>
-          <label class="btn btn-sm btn-info text-white fw-bold shadow-sm mb-0" for="btn-import-full-history" style="cursor: pointer;" title="Restaurar copia total">
-            <i class="bi bi-cloud-arrow-up-fill"></i> Restaurar Todo
+          <label class="btn btn-sm btn-info text-white fw-bold shadow-sm mb-0 px-3 d-flex align-items-center justify-content-center" for="btn-import-full-history" style="cursor: pointer;" title="Restaurar copia total">
+            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Restaurar Todo
             <input type="file" id="btn-import-full-history" accept=".json" style="display: none;">
           </label>
         </div>
@@ -326,13 +334,14 @@
           </div>
 
           <!-- Fila 2: Copia de Seguridad Completa (Catálogo + Tiquets + Fotos + Notas) -->
-          <div class="d-flex justify-content-center gap-2 w-100 border-top pt-2">
-            <button class="btn btn-sm btn-success fw-bold shadow-sm" id="btn-export-full-backup" title="Exportar catálogo, notas y tiquets con fotos">
-              <i class="bi bi-cloud-arrow-down-fill"></i> Copia Total (con Fotos)
+          <div class="d-flex justify-content-center align-items-stretch gap-2 w-100 border-top pt-2">
+            <button class="btn btn-sm btn-success fw-bold shadow-sm px-3 text-center d-flex flex-column justify-content-center align-items-center" id="btn-export-full-backup" title="Exportar catálogo, notas y tiquets con fotos">
+              <span><i class="bi bi-cloud-arrow-down-fill me-1"></i> Copia Total</span>
+              <span class="fw-normal" style="font-size: 0.72rem; line-height: 1.1;">(con fotos)</span>
             </button>
 
-            <label class="btn btn-sm btn-info text-white fw-bold shadow-sm mb-0" for="btn-import-full-backup" style="cursor: pointer;" title="Restaurar copia completa">
-              <i class="bi bi-cloud-arrow-up-fill"></i> Restaurar Todo
+            <label class="btn btn-sm btn-info text-white fw-bold shadow-sm mb-0 px-3 d-flex align-items-center justify-content-center" for="btn-import-full-backup" style="cursor: pointer;" title="Restaurar copia completa">
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Restaurar Todo
               <input type="file" id="btn-import-full-backup" accept=".json" style="display: none;">
             </label>
           </div>

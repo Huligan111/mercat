@@ -9,6 +9,69 @@ import * as db from '../storage.js';
 import * as bootstrap from 'bootstrap';
 import { renderCart } from './cart.js';
 import { renderInventory, showInventoryModal } from './inventory.js';
+import { parseVoicePrice } from './bulkModal.js';
+import Swal from 'sweetalert2';
+
+// Configuración de Reconocimiento de Voz
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let activeProductVoiceBtn = null;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+}
+
+const stopProductVoiceSession = () => {
+    if (activeProductVoiceBtn) {
+        activeProductVoiceBtn.classList.remove('btn-voice-active');
+        activeProductVoiceBtn = null;
+    }
+    if (recognition) {
+        try { recognition.stop(); } catch (_) {}
+    }
+};
+
+const startVoiceForProductField = (btn, onResult) => {
+    if (!SpeechRecognition) {
+        Swal.fire('Dictado no disponible', 'Tu navegador o dispositivo no soporta reconocimiento de voz.', 'info');
+        return;
+    }
+
+    if (activeProductVoiceBtn === btn) {
+        stopProductVoiceSession();
+        return;
+    }
+
+    stopProductVoiceSession();
+
+    try {
+        activeProductVoiceBtn = btn;
+        btn.classList.add('btn-voice-active');
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            onResult(transcript);
+            stopProductVoiceSession();
+        };
+
+        recognition.onend = () => {
+            stopProductVoiceSession();
+        };
+
+        recognition.onerror = (e) => {
+            console.warn('Error en reconocimiento de voz:', e.error);
+            stopProductVoiceSession();
+        };
+
+        recognition.start();
+    } catch (err) {
+        console.error('Fallo al iniciar micrófono:', err);
+        stopProductVoiceSession();
+    }
+};
 
 // Nomenclatura DOM de Elementos del Formulario
 let newProductModalElement, newProductForm;
@@ -51,9 +114,43 @@ export const initProductModalUI = (onClose) => {
     modalHelpText = document.getElementById('modal-help-text');
     formSubmitText = document.getElementById('form-submit-text');
 
+    // Botones de dictado por voz
+    const btnVoiceName = document.getElementById('btn-voice-product-name');
+    const btnVoicePrice = document.getElementById('btn-voice-product-price');
+
+    if (btnVoiceName) {
+        btnVoiceName.addEventListener('click', () => {
+            startVoiceForProductField(btnVoiceName, (transcript) => {
+                if (!transcript) return;
+                const formatted = transcript.trim().charAt(0).toUpperCase() + transcript.trim().slice(1);
+                if (formName) formName.value = formatted;
+            });
+        });
+    }
+
+    if (btnVoicePrice) {
+        btnVoicePrice.addEventListener('click', () => {
+            startVoiceForProductField(btnVoicePrice, (transcript) => {
+                const parsed = parseVoicePrice(transcript);
+                if (parsed !== null && formPrice) {
+                    formPrice.value = parsed.toFixed(2);
+                } else {
+                    Swal.fire({
+                        title: 'No se entendió el precio',
+                        text: `Se escuchó: "${transcript}". Intenta decir por ejemplo "uno con noventa y nueve" o "dos euros".`,
+                        icon: 'info',
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        });
+    }
+
     // Evento Bootstrap Nativo (`hidden.bs.modal`) cuando el modal ha terminado su animación CSS de desvanecimiento "Cierre".
     if (newProductModalElement) {
         newProductModalElement.addEventListener('hidden.bs.modal', event => {
+            stopProductVoiceSession();
             if (onCloseCallback) onCloseCallback();
         });
     }
