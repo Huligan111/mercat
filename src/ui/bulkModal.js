@@ -51,6 +51,12 @@ const simpleWordsToNumber = (tokens) => {
  * @returns {number}
  */
 const wordsToNumber = (phrase) => {
+    if (!phrase) return 0;
+    const cleaned = phrase.trim().replace(',', '.');
+    if (/^\d+(\.\d+)?$/.test(cleaned)) {
+        return parseFloat(cleaned);
+    }
+
     const tokens = phrase.toLowerCase()
         .replace(/[,.]/g, ' ')
         .split(/\s+/)
@@ -119,20 +125,23 @@ export const parseVoicePrice = (rawTranscript) => {
 /**
  * Parsea el peso dictado por voz en español, reconociendo combinaciones de kilos y gramos.
  * Soporta:
- * - "Kilo treciento" / "kilo trescientos" -> 1.3 kg
- * - "Mil trecientos gramos" / "mil trescientos" -> 1300 g
- * - "Un kilo y medio" -> 1.5 kg
+ * - "Un kilo trecientos ochenta y dos" / "1 kilo 382" -> 1.382 kg
+ * - "1.382 kg" / "1,382 kilos" -> 1.382 kg
+ * - "Mil trecientos gramos" / "mil trescientos" -> 1300 g (o 1.382 kg si está en modo kg)
+ * - "Un kilo y medio" -> 1.5 kg, "kilo y cuarto" -> 1.25 kg
  * - "450 gramos" -> 450 g
  * - "1 con 35" / "1.35" -> 1.35 kg
  * @param {string} rawTranscript 
+ * @param {'kg'|'g'} [preferredUnit='kg'] - Unidad activa en la interfaz al momento de dictar
  * @returns {{ value: number, unit: 'kg'|'g' }|null}
  */
-export const parseVoiceWeight = (rawTranscript) => {
+export const parseVoiceWeight = (rawTranscript, preferredUnit = 'kg') => {
+    if (!rawTranscript) return null;
     let t = rawTranscript.toLowerCase().trim();
 
     // 1. Detección explícita de unidades mencionadas
-    const hasGrams = /\b(gramos?|gr|g)\b/.test(t);
-    const hasKilos = /\b(kilos?|kg|kilo)\b/.test(t);
+    const hasGrams = /\b(gramos?|grs?|gr|g)\b/.test(t);
+    const hasKilos = /\b(kilos?|kgs?|kg|kilo)\b/.test(t);
 
     // 2. Expresiones idiomáticas habituales en peso
     if (t.includes('kilo y medio') || t.includes('un kilo y medio') || t.includes('1 y medio')) {
@@ -148,11 +157,30 @@ export const parseVoiceWeight = (rawTranscript) => {
         return { value: 0.75, unit: 'kg' };
     }
 
-    // 3. Patrón compuesto: "[X] kilo(s) [Y]" (Ej: "kilo treciento", "kilo trescientos", "2 kilos cuatrocientos")
-    if (hasKilos && !hasGrams) {
-        const parts = t.split(/\b(?:kilos?|kg)\b/);
+    // 3. Dígito decimal directo formateado por el motor de voz (Ej: "1,382 kg", "1.382 kilos", "1.382", "1,382")
+    const directDecimalMatch = t.match(/(\d+)[,\.](\d+)/);
+    if (directDecimalMatch) {
+        const intPart = parseInt(directDecimalMatch[1], 10);
+        const decPartStr = directDecimalMatch[2];
+        const val = parseFloat(`${intPart}.${decPartStr}`);
+
+        if (hasGrams && !hasKilos) {
+            return { value: val, unit: 'g' };
+        }
+        if (hasKilos || val < 50) {
+            return { value: val, unit: 'kg' };
+        }
+        return { value: val, unit: 'g' };
+    }
+
+    // 4. Patrón compuesto Kilos + Gramos (Ej: "un kilo trescientos ochenta y dos", "1 kilo y 382 gramos", "2 kilos 400")
+    if (hasKilos) {
+        const parts = t.split(/\b(?:kilos?|kgs?|kg)\b/);
         const beforeKilo = parts[0].trim();
-        const afterKilo = parts[1] ? parts[1].replace(/\b(y|con)\b/g, '').trim() : '';
+        let afterKilo = parts[1] ? parts[1].trim() : '';
+
+        // Limpiar conectores y palabras de gramos
+        afterKilo = afterKilo.replace(/\b(gramos?|grs?|gr|g|y|con)\b/g, ' ').trim();
 
         const kiloAmount = beforeKilo ? wordsToNumber(beforeKilo) : 1;
         const validKilo = kiloAmount > 0 ? kiloAmount : 1;
@@ -161,48 +189,56 @@ export const parseVoiceWeight = (rawTranscript) => {
             if (afterKilo.includes('medio')) {
                 return { value: validKilo + 0.5, unit: 'kg' };
             }
+            if (afterKilo.includes('tres cuartos')) {
+                return { value: validKilo + 0.75, unit: 'kg' };
+            }
+            if (afterKilo.includes('cuarto')) {
+                return { value: validKilo + 0.25, unit: 'kg' };
+            }
+
             const remainderNum = wordsToNumber(afterKilo);
             if (remainderNum > 0) {
+                let gramsInKg = 0;
                 if (remainderNum >= 100) {
-                    // Ej: "kilo treciento" -> 1 + 300/1000 = 1.300 kg
-                    const totalVal = validKilo + (remainderNum / 1000);
-                    return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
+                    gramsInKg = remainderNum / 1000;
                 } else if (remainderNum >= 10) {
-                    // Ej: "1 kilo 35" -> 1.35 kg
-                    const totalVal = validKilo + (remainderNum / 100);
-                    return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
+                    gramsInKg = remainderNum / 100;
                 } else {
-                    // Ej: "1 kilo 5" -> 1.5 kg
-                    const totalVal = validKilo + (remainderNum / 10);
-                    return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
+                    gramsInKg = remainderNum / 10;
                 }
+                const totalVal = validKilo + gramsInKg;
+                return { value: parseFloat(totalVal.toFixed(3)), unit: 'kg' };
             }
-        } else {
-            return { value: validKilo, unit: 'kg' };
         }
+
+        return { value: validKilo, unit: 'kg' };
     }
 
-    // 4. Limpieza de palabras de unidad para parsear el número plano
-    t = t.replace(/\b(gramos?|gr|g|kilos?|kg)\b/g, '').trim();
-
-    // 5. Dígito decimal directo con coma o punto (Ej: "1,35" o "1.300")
-    const digitDecimalMatch = t.match(/(\d+)[,\.](\d+)/);
-    if (digitDecimalMatch) {
-        const val = parseFloat(`${digitDecimalMatch[1]}.${digitDecimalMatch[2]}`);
-        return { value: val, unit: hasGrams ? 'g' : (val >= 50 ? 'g' : 'kg') };
-    }
-
-    // 6. Formato "X con Y" o "X coma Y" o "X punto Y"
+    // 5. Formato "X con Y" o "X coma Y" o "X punto Y" (Ej: "uno con trescientos ochenta y dos")
     const splitRegex = /\b(con|coma|punto)\b/;
     if (splitRegex.test(t)) {
         const p = t.split(splitRegex);
         const intPart = wordsToNumber(p[0]);
-        const decPart = wordsToNumber(p[2]);
-        const val = parseFloat(`${intPart}.${decPart}`);
-        return { value: val, unit: hasGrams ? 'g' : 'kg' };
+        const decStr = p[2].replace(/\b(kilos?|kg|gramos?|g)\b/g, '').trim();
+        const decVal = wordsToNumber(decStr);
+
+        let finalVal = 0;
+        if (decVal >= 100) {
+            finalVal = intPart + (decVal / 1000);
+        } else if (decVal >= 10) {
+            finalVal = intPart + (decVal / 100);
+        } else {
+            finalVal = intPart + (decVal / 10);
+        }
+
+        const unit = (hasGrams && !hasKilos) ? 'g' : 'kg';
+        return { value: parseFloat(finalVal.toFixed(3)), unit };
     }
 
-    // 7. Número plano en palabras o dígitos (Ej: "mil trecientos", "400", "trescientos")
+    // 6. Limpieza de palabras de unidad para parsear el número plano
+    t = t.replace(/\b(gramos?|grs?|gr|g|kilos?|kgs?|kg)\b/g, '').trim();
+
+    // 7. Número plano en palabras o dígitos (Ej: "mil trescientos ochenta y dos", "400", "trescientos")
     const plainNum = wordsToNumber(t);
     if (plainNum > 0) {
         if (hasGrams) {
@@ -211,8 +247,14 @@ export const parseVoiceWeight = (rawTranscript) => {
         if (hasKilos) {
             return { value: plainNum, unit: 'kg' };
         }
-        // Si no especificó unidad y es >= 50 (ej. 300, 450, 1300), se interpreta como gramos
-        return { value: plainNum, unit: plainNum >= 50 ? 'g' : 'kg' };
+        // Si no especificó unidad pero está en modo kg y el número es de miles (ej: 1382), interpretar como 1.382 kg
+        if (plainNum >= 1000 && preferredUnit === 'kg') {
+            return { value: parseFloat((plainNum / 1000).toFixed(3)), unit: 'kg' };
+        }
+        if (plainNum < 50) {
+            return { value: plainNum, unit: 'kg' };
+        }
+        return { value: plainNum, unit: preferredUnit === 'kg' ? 'kg' : 'g' };
     }
 
     return null;
@@ -314,8 +356,8 @@ const startVoiceForButton = (btn, onResult) => {
 const recalculateBulkTotal = () => {
     if (!priceKgInput || !weightInput || !calculatedTotalDisplay) return;
 
-    const priceKg = parseFloat(priceKgInput.value) || 0;
-    const rawWeight = parseFloat(weightInput.value) || 0;
+    const priceKg = parseFloat(String(priceKgInput.value).replace(',', '.')) || 0;
+    const rawWeight = parseFloat(String(weightInput.value).replace(',', '.')) || 0;
     const isGrams = unitGRadio && unitGRadio.checked;
 
     if (priceKg > 0 && rawWeight > 0) {
@@ -443,7 +485,8 @@ export const initBulkModalUI = (onCartUpdated) => {
     if (btnVoiceWeight) {
         btnVoiceWeight.addEventListener('click', () => {
             startVoiceForButton(btnVoiceWeight, (transcript) => {
-                const parsedWeight = parseVoiceWeight(transcript);
+                const currentUnit = (unitGRadio && unitGRadio.checked) ? 'g' : 'kg';
+                const parsedWeight = parseVoiceWeight(transcript, currentUnit);
                 if (parsedWeight !== null && weightInput) {
                     // Cambiar la unidad activa si el usuario mencionó gramos o kilos
                     if (parsedWeight.unit === 'g' && unitGRadio) {
@@ -459,7 +502,7 @@ export const initBulkModalUI = (onCartUpdated) => {
                 } else {
                     Swal.fire({
                         title: 'No se entendió el peso',
-                        text: `Se escuchó: "${transcript}". Intenta decir por ejemplo "un kilo y medio" o "cuatrocientos gramos".`,
+                        text: `Se escuchó: "${transcript}". Intenta decir por ejemplo "un kilo trescientos ochenta y dos" o "cuatrocientos gramos".`,
                         icon: 'info',
                         timer: 2500,
                         showConfirmButton: false
@@ -475,8 +518,8 @@ export const initBulkModalUI = (onCartUpdated) => {
             e.preventDefault();
 
             const name = (nameInput?.value || '').trim() || 'Producto a Granel';
-            const priceKg = parseFloat(priceKgInput?.value) || 0;
-            const rawWeight = parseFloat(weightInput?.value) || 0;
+            const priceKg = parseFloat(String(priceKgInput?.value).replace(',', '.')) || 0;
+            const rawWeight = parseFloat(String(weightInput?.value).replace(',', '.')) || 0;
             const isGrams = unitGRadio && unitGRadio.checked;
 
             if (priceKg <= 0 || rawWeight <= 0) {
